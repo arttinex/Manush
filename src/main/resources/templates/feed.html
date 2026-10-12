@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Feed — Manush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/components.css}">
+    <link rel="stylesheet" th:href="@{/static/css/feed.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar" role="navigation">
+    <div class="container navbar-inner">
+        <a href="/" class="brand"><span class="script">Manush</span></a>
+        <div class="nav-links">
+            <a href="/feed" class="nav-link" style="color:var(--manush-primary);font-weight:600">Feed</a>
+            <a href="/help" class="nav-link">Find Help</a>
+            <a href="/help/ask" class="nav-link">Ask Help</a>
+            <a href="/jobs" class="nav-link">Jobs</a>
+            <a href="/blood" class="nav-link">Blood Bank</a>
+            <a href="/jogajog" class="nav-link">Jogajog</a>
+            <a href="/ai" class="nav-link">Manush AI</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="themeToggle">☀️</button>
+            <div id="authArea">
+                <a href="/auth/login" class="btn btn-ghost">Login</a>
+                <a href="/auth/register" class="btn btn-3d">Join</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container feed-layout">
+    <!-- Left Category Sidebar -->
+    <aside class="category-nav">
+        <h4 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--manush-text-muted); margin-bottom:8px;">Categories</h4>
+        <button class="cat-btn active" data-cat="">All Posts</button>
+        <button class="cat-btn" data-cat="GENERAL_HELP">General Help</button>
+        <button class="cat-btn" data-cat="EMERGENCY_HELP">Emergency Help</button>
+        <button class="cat-btn" data-cat="BLOOD_DONATION">Blood Donation</button>
+        <button class="cat-btn" data-cat="JOB_OPPORTUNITY">Jobs</button>
+        <button class="cat-btn" data-cat="SCAM">Scam Alerts</button>
+        <button class="cat-btn" data-cat="AWARENESS">Awareness</button>
+        <button class="cat-btn" data-cat="LOST_AND_FOUND">Lost & Found</button>
+        <button class="cat-btn" data-cat="FOOD_SHARING">Food Sharing</button>
+        <button class="cat-btn" data-cat="GIVE_AWAY">Give Away</button>
+    </aside>
+
+    <!-- Main Feed Column -->
+    <main>
+        <!-- Search & Quick Filters -->
+        <div class="search-bar">
+            <input type="text" id="feedSearch" class="form-input" placeholder="🔍 Search posts or help requests...">
+        </div>
+
+        <!-- Create Post Card -->
+        <div class="card-3d create-post-card" id="createPostBox" style="display:none">
+            <h3 style="font-size:1rem;margin-bottom:8px">Share or Ask Something</h3>
+            <form id="createPostForm">
+                <div class="form-group" style="margin-bottom:8px">
+                    <input type="text" id="postTitle" class="form-input" placeholder="Title (e.g. Need electrician in Dhanmondi)" required minlength="5" maxlength="150">
+                </div>
+                <div class="form-group" style="margin-bottom:8px">
+                    <textarea id="postDesc" class="form-input" rows="3" placeholder="Describe what you need or want to share (minimum 10 characters)..." required minlength="10" maxlength="3000"></textarea>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+                    <select id="postCategory" class="form-input form-select" style="flex:1" required>
+                        <option value="GENERAL_HELP">General Help</option>
+                        <option value="EMERGENCY_HELP">Emergency Help</option>
+                        <option value="BLOOD_DONATION">Blood Donation</option>
+                        <option value="JOB_OPPORTUNITY">Job Opportunity</option>
+                        <option value="SCAM">Scam Alert</option>
+                        <option value="LOST_AND_FOUND">Lost & Found</option>
+                        <option value="FOOD_SHARING">Food Sharing</option>
+                        <option value="GIVE_AWAY">Give Away</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                    <select id="postUrgency" class="form-input form-select" style="flex:1">
+                        <option value="NORMAL">Normal Urgency</option>
+                        <option value="LOW">Low Urgency</option>
+                        <option value="HIGH">High Urgency</option>
+                        <option value="EMERGENCY">Emergency 🚨</option>
+                    </select>
+                </div>
+                <div style="text-align:right">
+                    <button type="submit" class="btn btn-3d" id="publishBtn">Post</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Feed List -->
+        <div id="feedList">
+            <!-- Loading Skeletons -->
+            <div class="skeleton skeleton-card" style="margin-bottom:16px"></div>
+            <div class="skeleton skeleton-card" style="margin-bottom:16px"></div>
+        </div>
+    </main>
+
+    <!-- Right Sidebar (Leaderboard preview / Emergency) -->
+    <aside class="sidebar-right">
+        <div class="card-3d" style="padding:var(--space-md);margin-bottom:var(--space-md)">
+            <h4 class="serif" style="font-size:1.1rem;margin-bottom:8px">Emergency Blood?</h4>
+            <p style="font-size:0.85rem;color:var(--manush-text-muted);margin-bottom:12px">Instantly match with verified donors nearby.</p>
+            <a href="/blood" class="btn btn-3d btn-sm btn-full">Find Donors</a>
+        </div>
+        <div class="card-3d" style="padding:var(--space-md)">
+            <h4 class="serif" style="font-size:1.1rem;margin-bottom:8px">Top Contributors</h4>
+            <div id="topHelpersList" style="font-size:0.85rem;color:var(--manush-text-muted)">
+                <p>Loading community heroes…</p>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script type="module">
+import { apiFetch, getAccessToken } from '/static/js/core/api.js';
+import { renderPostCard } from '/static/js/components/post-card.js';
+import { showSuccess, showError } from '/static/js/core/toast.js';
+import { initTheme } from '/static/js/core/theme.js';
+import { setupNavbar, isLoggedIn } from '/static/js/core/auth.js';
+
+initTheme();
+await setupNavbar();
+
+let currentCategory = '';
+let allPosts = [];
+const loggedIn = isLoggedIn();
+
+if (loggedIn) {
+    const createBox = document.getElementById('createPostBox');
+    if (createBox) createBox.style.display = 'block';
+}
+
+// Category filter
+document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.cat;
+        loadPosts();
+    });
+});
+
+// Search filter
+const searchInput = document.getElementById('feedSearch');
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase().trim();
+        const feed = document.getElementById('feedList');
+        if (!q) {
+            renderFeed(allPosts);
+            return;
+        }
+        const filtered = allPosts.filter(p =>
+            (p.title && p.title.toLowerCase().includes(q)) ||
+            (p.description && p.description.toLowerCase().includes(q)) ||
+            (p.authorName && p.authorName.toLowerCase().includes(q))
+        );
+        renderFeed(filtered);
+    });
+}
+
+function renderFeed(posts) {
+    const feed = document.getElementById('feedList');
+    if (!posts || posts.length === 0) {
+        feed.innerHTML = `
+            <div class="empty-state card-3d">
+                <div class="empty-icon">🤝</div>
+                <h3>No posts here yet</h3>
+                <p>Be the first to share something with your community!</p>
+            </div>
+        `;
+        return;
+    }
+    feed.innerHTML = posts.map(renderPostCard).join('');
+    attachPostListeners();
+}
+
+async function loadPosts() {
+    const feed = document.getElementById('feedList');
+    feed.innerHTML = '<div class="skeleton skeleton-card" style="margin-bottom:16px"></div><div class="skeleton skeleton-card" style="margin-bottom:16px"></div>';
+    try {
+        const query = currentCategory ? `?category=${currentCategory}` : '';
+        const data = await apiFetch(`/posts${query}`);
+        allPosts = Array.isArray(data) ? data : (data.content || []);
+        renderFeed(allPosts);
+    } catch (e) {
+        feed.innerHTML = `<div class="card-3d" style="padding:24px;text-align:center;color:var(--manush-danger)">Failed to load posts.</div>`;
+    }
+}
+
+async function loadTopHelpers() {
+    const container = document.getElementById('topHelpersList');
+    if (!container) return;
+    try {
+        const data = await apiFetch('/leaderboard?period=ALL_TIME');
+        const list = Array.isArray(data) ? data : (data.content || []);
+        if (list.length === 0) {
+            container.innerHTML = '<p style="color:var(--manush-text-muted)">Be the first contributor!</p>';
+            return;
+        }
+        container.innerHTML = list.slice(0, 5).map((u, i) => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--manush-border)">
+                <span>${i + 1}. <b>${u.userName || u.name || 'Anonymous'}</b></span>
+                <span style="color:var(--manush-primary);font-weight:600">⭐ ${u.points || u.helpingPoints || 0}</span>
+            </div>
+        `).join('');
+    } catch (e) {
+        container.innerHTML = '<p style="color:var(--manush-text-muted)">Community heroes will appear here.</p>';
+    }
+}
+
+function attachPostListeners() {
+    document.querySelectorAll('.btn-react').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!isLoggedIn()) return window.location.href = '/auth/login';
+            const postId = btn.dataset.id;
+            try {
+                const res = await apiFetch(`/posts/${postId}/react`, { method: 'POST' });
+                btn.querySelector('span').textContent = res.reactionCount;
+            } catch (e) {}
+        });
+    });
+
+    document.querySelectorAll('.btn-comment-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const postId = btn.dataset.id;
+            const commentsSection = document.getElementById(`comments-${postId}`);
+            if (commentsSection) {
+                const isHidden = commentsSection.style.display === 'none';
+                commentsSection.style.display = isHidden ? 'block' : 'none';
+                if (isHidden) {
+                    loadComments(postId);
+                }
+            }
+        });
+    });
+
+    document.querySelectorAll('.comment-form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!isLoggedIn()) return window.location.href = '/auth/login';
+            const postId = form.dataset.postId;
+            const input = form.querySelector('.comment-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            try {
+                await apiFetch(`/posts/${postId}/comments`, {
+                    method: 'POST',
+                    body: JSON.stringify({ content: text })
+                });
+                input.value = '';
+                showSuccess('Comment posted!');
+                loadComments(postId);
+            } catch (e) {}
+        });
+    });
+
+    document.querySelectorAll('.btn-report').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!isLoggedIn()) return window.location.href = '/auth/login';
+            const postId = btn.dataset.id;
+            const { value: reason } = await Swal.fire({
+                title: 'Report this post',
+                input: 'textarea',
+                inputPlaceholder: 'Tell us what is wrong with this post...',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--manush-danger)'
+            });
+            if (reason) {
+                try {
+                    await apiFetch(`/posts/${postId}/report`, {
+                        method: 'POST',
+                        body: JSON.stringify({ reason })
+                    });
+                    showSuccess('Report submitted for moderation.');
+                } catch (e) {}
+            }
+        });
+    });
+}
+
+async function loadComments(postId) {
+    const commentsList = document.querySelector(`#comments-${postId} .comments-list`);
+    if (!commentsList) return;
+
+    try {
+        const data = await apiFetch(`/posts/${postId}/comments`);
+        const comments = Array.isArray(data) ? data : (data.content || []);
+        commentsList.innerHTML = comments.map(comment => `
+            <div class="comment-item" data-comment-id="${comment.id}">
+                <div class="comment-header">
+                    <div class="comment-avatar">${comment.authorName ? comment.authorName.charAt(0).toUpperCase() : '?'}</div>
+                    <div class="comment-meta">
+                        <span class="comment-author">${comment.authorName || 'Anonymous'}</span>
+                        <span class="comment-time">${new Date(comment.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                </div>
+                <div class="comment-body">${comment.content || comment.text || ''}</div>
+            </div>
+        `).join('');
+    } catch (e) {
+        commentsList.innerHTML = '<p style="color:var(--manush-text-muted);font-size:.85rem">Failed to load comments.</p>';
+    }
+}
+
+// Create post handler
+const form = document.getElementById('createPostForm');
+if (form) {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('publishBtn');
+        btn.disabled = true;
+        btn.textContent = 'Publishing...';
+        try {
+            await apiFetch('/posts', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: document.getElementById('postTitle').value,
+                    description: document.getElementById('postDesc').value,
+                    category: document.getElementById('postCategory').value,
+                    urgency: document.getElementById('postUrgency').value
+                })
+            });
+            form.reset();
+            showSuccess('Help request posted!');
+            await loadPosts();
+        } catch (err) {
+            // error shown by toast
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Post';
+        }
+    });
+}
+
+loadPosts();
+loadTopHelpers();
+</script>
+</body>
+</html>

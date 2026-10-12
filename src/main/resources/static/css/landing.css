@@ -1,0 +1,66 @@
+/* ================================================
+   Landing Page Specific
+   ================================================ */
+.hero {
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, var(--manush-bg) 60%, var(--manush-accent) 100%);
+  padding: var(--space-2xl) 0;
+}
+.hero-eyebrow { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--manush-primary); margin-bottom: var(--space-md); }
+.hero-title {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.1;
+  margin-bottom: var(--space-lg);
+}
+.hero-title .script { font-size: 1.2em; color: var(--manush-primary); display: block; }
+.hero-subtitle { font-size: 1.1rem; color: var(--manush-text-muted); max-width: 520px; margin-bottom: var(--space-xl); }
+.hero-cta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: var(--space-xl); }
+.hero-stats { display: flex; gap: var(--space-md); flex-wrap: wrap; }
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: var(--manush-surface);
+  border: 1px solid var(--manush-border);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: .82rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-3d-sm);
+}
+
+.section-title { font-size: clamp(1.6rem, 4vw, 2.5rem); margin-bottom: var(--space-md); }
+.section-subtitle { color: var(--manush-text-muted); margin-bottom: var(--space-xl); }
+
+/* Helping Points grid */
+.points-grid { display: flex; gap: var(--space-xl); justify-content: center; flex-wrap: wrap; margin-top: var(--space-xl); }
+.points-item { text-align: center; }
+.points-value { font-family: var(--font-display); font-size: 3rem; color: var(--manush-accent); font-weight: 700; display: block; }
+.points-label { font-size: .85rem; color: var(--manush-text-muted); margin-top: var(--space-xs); }
+
+/* Footer */
+.footer { padding: var(--space-xl) 0; text-align: center; }
+
+/* ---- Feature Card grid ---- */
+.features .card-grid {
+  margin-top: var(--space-xl);
+}
+
+/* ---- CTA Section ---- */
+.cta-section {
+  background: var(--manush-accent);
+}
+.cta-section h2 {
+  color: var(--manush-ink);
+  margin-bottom: var(--space-md);
+}
+.cta-section p {
+  color: var(--manush-text-muted);
+}
+
+/* ---- points section ---- */
+.points-section {
+  text-align: center;
+}

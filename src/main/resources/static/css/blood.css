@@ -1,0 +1,101 @@
+/* ================================================
+   Blood Bank Page Styles
+   ================================================ */
+.blood-layout { 
+  display: grid; 
+  grid-template-columns: 1fr 350px; 
+  gap: var(--space-lg); 
+  margin-top: var(--space-lg); 
+}
+.blood-group-selector { 
+  display: flex; 
+  gap: var(--space-sm); 
+  flex-wrap: wrap; 
+  margin-bottom: var(--space-md); 
+}
+.blood-group-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--manush-border);
+  background: var(--manush-surface);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.blood-group-btn:hover { 
+  border-color: var(--manush-primary); 
+}
+.blood-group-btn.active { 
+  background: var(--manush-danger); 
+  border-color: var(--manush-danger); 
+  color: #fff; 
+}
+
+.donor-card { 
+  display: flex; 
+  align-items: center; 
+  gap: var(--space-md); 
+  padding: var(--space-md); 
+  margin-bottom: var(--space-md); 
+}
+.donor-avatar { 
+  width: 60px; 
+  height: 60px; 
+  border-radius: 50%; 
+  background: var(--manush-accent); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 1.5rem; 
+  font-weight: 700; 
+  color: var(--manush-primary); 
+}
+.donor-info { flex: 1; }
+.donor-name { 
+  font-weight: 600; 
+  font-size: 1rem; 
+}
+.donor-meta { 
+  font-size: 0.85rem; 
+  color: var(--manush-text-muted); 
+  margin-top: 2px; 
+}
+.donor-points { 
+  font-size: 0.8rem; 
+  color: var(--manush-primary); 
+  margin-top: 4px; 
+}
+
+.urgency-indicator { 
+  display: inline-flex; 
+  align-items: center; 
+  gap: 4px; 
+  padding: 4px 12px; 
+  border-radius: var(--radius-full); 
+  font-size: 0.75rem; 
+  font-weight: 700; 
+}
+.urgency-emergency { 
+  background: var(--manush-danger); 
+  color: #fff; 
+  animation: pulse 2s infinite; 
+}
+.urgency-urgent { 
+  background: #c0392b; 
+  color: #fff; 
+}
+.urgency-normal { 
+  background: var(--manush-border); 
+  color: var(--manush-text-muted); 
+}
+
+@keyframes pulse { 
+  0%, 100% { opacity: 1; } 
+  50% { opacity: 0.7; } 
+}
+
+@media (max-width: 992px) {
+  .blood-layout { grid-template-columns: 1fr; }
+}

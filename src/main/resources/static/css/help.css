@@ -1,0 +1,72 @@
+/* ================================================
+   Help Pages Styles
+   ================================================ */
+.find-layout { 
+  display: grid; 
+  grid-template-columns: 280px 1fr; 
+  gap: var(--space-lg); 
+  margin-top: var(--space-lg); 
+}
+.filters-sidebar { 
+  position: sticky; 
+  top: 80px; 
+  height: fit-content; 
+}
+.filter-group { 
+  margin-bottom: var(--space-md); 
+}
+.filter-label { 
+  font-size: 0.85rem; 
+  font-weight: 600; 
+  color: var(--manush-text); 
+  margin-bottom: var(--space-sm); 
+  display: block; 
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1.5px solid var(--manush-border);
+  background: var(--manush-surface);
+  color: var(--manush-text-muted);
+  margin: 4px;
+  transition: all var(--transition-fast);
+}
+.filter-chip:hover { 
+  border-color: var(--manush-primary); 
+  color: var(--manush-primary); 
+}
+.filter-chip.active { 
+  background: var(--manush-primary); 
+  border-color: var(--manush-primary); 
+  color: var(--manush-accent); 
+}
+.distance-slider { 
+  width: 100%; 
+  margin: var(--space-sm) 0; 
+}
+.results-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: var(--space-md); 
+}
+.results-count { 
+  font-size: 0.9rem; 
+  color: var(--manush-text-muted); 
+}
+.sort-select { 
+  padding: 6px 12px; 
+  border-radius: var(--radius-sm); 
+  border: 1.5px solid var(--manush-border); 
+  font-size: 0.85rem; 
+}
+
+@media (max-width: 992px) {
+  .find-layout { grid-template-columns: 1fr; }
+  .filters-sidebar { display: none; }
+}

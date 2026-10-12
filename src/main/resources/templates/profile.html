@@ -1,0 +1,297 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — Manush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/components.css}">
+    <link rel="stylesheet" th:href="@{/static/css/profile.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar" role="navigation">
+    <div class="container navbar-inner">
+        <a href="/" class="brand"><span class="script">Manush</span></a>
+        <div class="nav-links">
+            <a href="/feed" class="nav-link">Feed</a>
+            <a href="/help" class="nav-link">Find Help</a>
+            <a href="/help/ask" class="nav-link">Ask Help</a>
+            <a href="/jobs" class="nav-link">Jobs</a>
+            <a href="/blood" class="nav-link">Blood Bank</a>
+            <a href="/jogajog" class="nav-link">Jogajog</a>
+            <a href="/ai" class="nav-link">Manush AI</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="themeToggle">☀️</button>
+            <div id="authArea">
+                <a href="/auth/login" class="btn btn-ghost">Login</a>
+                <a href="/auth/register" class="btn btn-3d">Join</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container" style="padding-top: var(--space-xl)">
+    <!-- Profile Header -->
+    <div class="card-3d profile-header" style="padding: var(--space-xl)">
+        <div class="profile-avatar-large" id="profileAvatar">?</div>
+        <div class="profile-info">
+            <h1 class="profile-name" id="profileName">Loading...</h1>
+            <div class="profile-meta">
+                <span id="profileEmail">Loading...</span>
+                <span style="margin: 0 8px">•</span>
+                <span id="profileLocation">Location not set</span>
+                <span style="margin: 0 8px">•</span>
+                <span class="blood-badge" id="profileBloodGroup">A+</span>
+            </div>
+            <div class="profile-badges" id="profileBadges">
+                <!-- Badges will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="card-3d stat-card">
+            <div class="stat-value" id="statPoints">0</div>
+            <div class="stat-label">Helping Points</div>
+        </div>
+        <div class="card-3d stat-card">
+            <div class="stat-value" id="statHelps">0</div>
+            <div class="stat-label">Helps Completed</div>
+        </div>
+        <div class="card-3d stat-card">
+            <div class="stat-value" id="statDonations">0</div>
+            <div class="stat-label">Blood Donations</div>
+        </div>
+        <div class="card-3d stat-card">
+            <div class="stat-value" id="statJobs">0</div>
+            <div class="stat-label">Jobs Completed</div>
+        </div>
+    </div>
+
+    <!-- Profile Settings -->
+    <div class="profile-section">
+        <div class="section-header">
+            <h2 class="section-title serif">Profile Settings</h2>
+        </div>
+        <div class="card-3d" style="padding: var(--space-lg)">
+            <form id="profileForm">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="editName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="editEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="tel" id="editPhone" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Area / Location</label>
+                    <input type="text" id="editArea" class="form-input" placeholder="e.g., Uttara, Dhaka">
+                </div>
+                <div style="margin-top: var(--space-md)">
+                    <button type="submit" class="btn btn-3d">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Settings -->
+    <div class="profile-section">
+        <div class="section-header">
+            <h2 class="section-title serif">App Settings</h2>
+        </div>
+        <div class="card-3d" style="padding: var(--space-lg)">
+            <div class="settings-list">
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Dark Mode</div>
+                        <div class="setting-desc">Switch between light and dark theme</div>
+                    </div>
+                    <button type="button" id="darkModeToggle" class="btn btn-ghost btn-sm">Toggle</button>
+                </div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Email Notifications</div>
+                        <div class="setting-desc">Receive email updates about your help requests</div>
+                    </div>
+                    <input type="checkbox" id="emailNotif" checked>
+                </div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">SMS Notifications</div>
+                        <div class="setting-desc">Receive SMS for urgent blood requests</div>
+                    </div>
+                    <input type="checkbox" id="smsNotif">
+                </div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Location Sharing</div>
+                        <div class="setting-desc">Allow nearby helpers to see your approximate location</div>
+                    </div>
+                    <input type="checkbox" id="locationShare" checked>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="profile-section">
+        <div class="section-header">
+            <h2 class="section-title serif" style="color: var(--manush-danger)">Danger Zone</h2>
+        </div>
+        <div class="card-3d" style="padding: var(--space-lg); border: 2px solid var(--manush-danger)">
+            <div class="settings-list">
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label" style="color: var(--manush-danger)">Delete Account</div>
+                        <div class="setting-desc">Permanently delete your account and all data</div>
+                    </div>
+                    <button type="button" id="deleteAccountBtn" class="btn btn-ghost btn-sm" style="border-color: var(--manush-danger); color: var(--manush-danger)">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { apiFetch } from '/static/js/core/api.js';
+import { showSuccess, showError } from '/static/js/core/toast.js';
+import { initTheme } from '/static/js/core/theme.js';
+import { setupNavbar, requireAuth } from '/static/js/core/auth.js';
+
+initTheme();
+await setupNavbar();
+
+if (!requireAuth()) {
+    // Redirect handled by requireAuth
+}
+
+// Load profile data
+async function loadProfile() {
+    try {
+        const user = await apiFetch('/users/me');
+        
+        // Update header
+        document.getElementById('profileAvatar').textContent = user.name ? user.name.charAt(0).toUpperCase() : '?';
+        document.getElementById('profileName').textContent = user.name || 'User';
+        document.getElementById('profileEmail').textContent = user.email || '';
+        document.getElementById('profileLocation').textContent = user.location?.area || user.area || 'Location not set';
+        document.getElementById('profileBloodGroup').textContent = user.bloodGroup || 'Not set';
+        
+        // Update stats
+        document.getElementById('statPoints').textContent = user.helpingPoints || 0;
+        document.getElementById('statHelps').textContent = user.completedHelps || 0;
+        document.getElementById('statDonations').textContent = user.bloodDonations || 0;
+        document.getElementById('statJobs').textContent = user.completedJobs || 0;
+        
+        // Update badges
+        const badgesContainer = document.getElementById('profileBadges');
+        if (user.badges && user.badges.length > 0) {
+            badgesContainer.innerHTML = user.badges.map(badge => `
+                <span class="badge ${badge.type === 'gold' ? 'badge-gold' : badge.type === 'silver' ? 'badge-silver' : 'badge-bronze'}">
+                    ${badge.icon} ${badge.name}
+                </span>
+            `).join('');
+        } else {
+            badgesContainer.innerHTML = '<span style="color:var(--manush-text-muted);font-size:0.85rem">No badges yet. Start helping to earn badges!</span>';
+        }
+        
+        // Fill form
+        document.getElementById('editName').value = user.name || '';
+        document.getElementById('editEmail').value = user.email || '';
+        document.getElementById('editPhone').value = user.phone || '';
+        document.getElementById('editArea').value = user.location?.area || user.area || '';
+        
+    } catch (e) {
+        showError('Failed to load profile');
+    }
+}
+
+// Save profile
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+        const updatedName = document.getElementById('editName').value;
+        await apiFetch('/users/me', {
+            method: 'PUT',
+            body: JSON.stringify({
+                name: updatedName,
+                email: document.getElementById('editEmail').value,
+                phone: document.getElementById('editPhone').value,
+                location: { area: document.getElementById('editArea').value },
+                area: document.getElementById('editArea').value
+            })
+        });
+        localStorage.setItem('user_name', updatedName);
+        showSuccess('Profile updated successfully!');
+        await loadProfile();
+        await setupNavbar();
+    } catch (e) {
+        showError('Failed to update profile');
+    }
+});
+
+// Dark mode toggle inside app settings
+const darkModeBtn = document.getElementById('darkModeToggle');
+if (darkModeBtn) {
+    darkModeBtn.addEventListener('click', () => {
+        const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+    });
+}
+
+// Delete account
+document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+    const { value: confirm } = await Swal.fire({
+        title: 'Are you sure?',
+        text: 'This action cannot be undone. All your data will be permanently deleted.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--manush-danger)',
+        confirmButtonText: 'Yes, delete my account'
+    });
+    
+    if (confirm) {
+        const { value: finalConfirm } = await Swal.fire({
+            title: 'Final Confirmation',
+            text: 'Type "DELETE" to confirm account deletion',
+            input: 'text',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--manush-danger)',
+            confirmButtonText: 'Delete'
+        });
+        
+        if (finalConfirm === 'DELETE') {
+            try {
+                await apiFetch('/users/me', { method: 'DELETE' });
+                localStorage.clear();
+                window.location.href = '/';
+            } catch (e) {
+                showError('Failed to delete account');
+            }
+        }
+    }
+});
+
+loadProfile();
+</script>
+</body>
+</html>

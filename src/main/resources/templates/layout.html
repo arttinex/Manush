@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' — Manush' : 'Manush'}">Manush</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+
+    <!-- Design System -->
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/components.css}">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+
+<!-- Top Navbar -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="container navbar-inner">
+        <a href="/" class="brand">
+            <span class="script">Manush</span>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="/feed" class="nav-link">Feed</a>
+            <a href="/help" class="nav-link">Find Help</a>
+            <a href="/jobs" class="nav-link">Jobs</a>
+            <a href="/blood" class="nav-link">Blood Bank</a>
+            <a href="/leaderboard" class="nav-link">Leaderboard</a>
+            <a href="/ai" class="nav-link">Manush AI</a>
+            <a href="/jogajog" class="nav-link">Jogajog</a>
+            <a sec:authorize="hasRole('ADMIN')" href="/admin/moderation" class="nav-link" style="color: var(--manush-primary); font-weight: 600;">Admin</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="themeToggle" aria-label="Toggle dark mode">☀️</button>
+            <div sec:authorize="!isAuthenticated()" class="auth-btns">
+                <a href="/auth/login" class="btn btn-ghost">Login</a>
+                <a href="/auth/register" class="btn btn-3d">Join</a>
+            </div>
+            <div sec:authorize="isAuthenticated()" class="user-menu">
+                <a href="/profile" class="btn btn-ghost">Profile</a>
+                <a href="#" onclick="logout()" class="btn btn-ghost">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Offline Banner -->
+<div class="offline-banner" id="offlineBanner" style="display:none" role="alert">
+    ⚠️ Reconnecting…
+</div>
+
+<!-- Page Content -->
+<main>
+    <div th:replace="~{::main-content}"><!-- page-specific content --></div>
+</main>
+
+<!-- Bottom Tab Bar (mobile) -->
+<nav class="bottom-tab-bar" role="navigation" aria-label="Mobile navigation">
+    <a href="/feed" class="tab-item">
+        <span class="tab-icon">🏠</span>
+        <span class="tab-label">Home</span>
+    </a>
+    <a href="/help" class="tab-item">
+        <span class="tab-icon">🔍</span>
+        <span class="tab-label">Find</span>
+    </a>
+    <a href="/help/ask" class="tab-item tab-primary">
+        <span class="tab-icon">+</span>
+        <span class="tab-label">Ask</span>
+    </a>
+    <a href="/jogajog" class="tab-item">
+        <span class="tab-icon">💬</span>
+        <span class="tab-label">Jogajog</span>
+    </a>
+    <a href="/profile" class="tab-item">
+        <span class="tab-icon">👤</span>
+        <span class="tab-label">Profile</span>
+    </a>
+</nav>
+
+<script type="module" th:src="@{/static/js/core/auth.js}"></script>
+<script type="module" th:src="@{/static/js/core/api.js}"></script>
+
+<script>
+const savedTheme = localStorage.getItem('theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+document.getElementById('themeToggle').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+});
+window.addEventListener('offline', () => document.getElementById('offlineBanner').style.display = 'block');
+window.addEventListener('online', () => document.getElementById('offlineBanner').style.display = 'none');
+function logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    window.location.href = '/auth/login';
+}
+</script>
+</body>
+</html>

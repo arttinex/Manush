@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard — Manush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/components.css}">
+    <link rel="stylesheet" th:href="@{/static/css/leaderboard.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar" role="navigation">
+    <div class="container navbar-inner">
+        <a href="/" class="brand"><span class="script">Manush</span></a>
+        <div class="nav-links">
+            <a href="/feed" class="nav-link">Feed</a>
+            <a href="/help" class="nav-link">Find Help</a>
+            <a href="/help/ask" class="nav-link">Ask Help</a>
+            <a href="/jobs" class="nav-link">Jobs</a>
+            <a href="/blood" class="nav-link">Blood Bank</a>
+            <a href="/jogajog" class="nav-link">Jogajog</a>
+            <a href="/ai" class="nav-link">Manush AI</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="themeToggle">☀️</button>
+            <div id="authArea">
+                <a href="/auth/login" class="btn btn-ghost">Login</a>
+                <a href="/auth/register" class="btn btn-3d">Join</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container leaderboard-layout">
+    <!-- Filters Sidebar -->
+    <aside class="filter-sidebar card-3d" style="padding: var(--space-lg)">
+        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-md)">Leaderboard Filters</h3>
+
+        <div class="filter-group">
+            <label class="filter-label">Category</label>
+            <button class="filter-btn active" data-category="HELPERS">Top Helpers</button>
+            <button class="filter-btn" data-category="BLOOD_DONORS">Blood Donors</button>
+            <button class="filter-btn" data-category="PROFESSIONALS">Top Professionals</button>
+            <button class="filter-btn" data-category="CONTRIBUTORS">Community Contributors</button>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">Time Period</label>
+            <button class="filter-btn active" data-period="WEEKLY">This Week</button>
+            <button class="filter-btn" data-period="MONTHLY">This Month</button>
+            <button class="filter-btn" data-period="ALL_TIME">All Time</button>
+        </div>
+    </aside>
+
+    <!-- Leaderboard Content -->
+    <main>
+        <h1 class="serif" style="font-size: 2.5rem; margin-bottom: var(--space-sm)">Leaderboard</h1>
+        <p style="color: var(--manush-text-muted); margin-bottom: var(--space-xl)">
+            Celebrating our community heroes who go above and beyond to help others.
+        </p>
+
+        <!-- Top Three Podium -->
+        <div class="top-three-card" id="topThreeCard" style="display: none;">
+            <h2 class="serif" style="font-size: 1.5rem; margin-bottom: var(--space-sm)">🏆 Top Contributors</h2>
+            <div class="top-three-grid" id="topThreeGrid">
+                <!-- Top 3 will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Full Leaderboard Table -->
+        <div class="card-3d" style="padding: var(--space-lg)">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th style="text-align: right">Points</th>
+                        <th style="text-align: right">Contributions</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: var(--space-xl);">
+                            <div class="skeleton skeleton-card" style="margin: 0 auto 16px; width: 200px;"></div>
+                            <p style="color: var(--manush-text-muted)">Loading leaderboard...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Your Rank -->
+        <div class="card-3d" style="padding: var(--space-lg); margin-top: var(--space-lg); border: 2px solid var(--manush-primary); display: none;" id="yourRankCard">
+            <h3 style="font-size: 1.1rem; margin-bottom: var(--space-sm)">Your Rank</h3>
+            <div id="yourRankContent" style="display: flex; align-items: center; gap: var(--space-md);">
+                <!-- Your rank will be loaded here -->
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="module">
+import { apiFetch } from '/static/js/core/api.js';
+import { showSuccess, showError } from '/static/js/core/toast.js';
+import { initTheme } from '/static/js/core/theme.js';
+import { setupNavbar, isLoggedIn } from '/static/js/core/auth.js';
+
+initTheme();
+await setupNavbar();
+
+// Filter state
+let filters = {
+    category: 'HELPERS',
+    period: 'WEEKLY'
+};
+
+// Category filter
+document.querySelectorAll('[data-category]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-category]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filters.category = btn.dataset.category;
+        loadLeaderboard();
+    });
+});
+
+// Period filter
+document.querySelectorAll('[data-period]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filters.period = btn.dataset.period;
+        loadLeaderboard();
+    });
+});
+
+// Load leaderboard
+async function loadLeaderboard() {
+    try {
+        const params = new URLSearchParams();
+        params.append('category', filters.category);
+        params.append('period', filters.period);
+        
+        const data = await apiFetch(`/leaderboard?${params.toString()}`);
+        const users = Array.isArray(data) ? data : (data.content || []);
+        const tbody = document.getElementById('leaderboardBody');
+        const topThreeCard = document.getElementById('topThreeCard');
+        const topThreeGrid = document.getElementById('topThreeGrid');
+        
+        if (users.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan=\"4\" style=\"text-align: center; padding: var(--space-xl);\">
+                        <div class=\"empty-icon\" style=\"font-size: 3rem; margin-bottom: var(--space-md)\">🏆</div>
+                        <h3>No rankings yet</h3>
+                        <p style=\"color: var(--manush-text-muted)\">Start helping others to climb the leaderboard!</p>
+                    </td>
+                </tr>
+            `;
+            topThreeCard.style.display = 'none';
+            return;
+        }
+        
+        // Top 3 podium
+        if (users.length >= 3) {
+            topThreeCard.style.display = 'block';
+            const top3 = [users[1], users[0], users[2]]; // 2nd, 1st, 3rd order for podium
+            topThreeGrid.innerHTML = top3.map((user, idx) => `
+                <div class="top-user">
+                    <div class="top-crown">${idx === 1 ? '👑' : ''}</div>
+                    <div class="top-avatar ${idx === 1 ? 'rank-1' : ''}">${user.name || user.userName ? (user.name || user.userName).charAt(0).toUpperCase() : '?'}</div>
+                    <div class="top-name">${user.name || user.userName || 'Anonymous'}</div>
+                    <div class="top-points">${user.points || user.helpingPoints || 0} pts</div>
+                </div>
+            `).join('');
+        } else {
+            topThreeCard.style.display = 'none';
+        }
+        
+        // Full table
+        tbody.innerHTML = users.map((user, idx) => `
+            <tr class="leaderboard-row">
+                <td class="rank-cell rank-${idx + 1}">${idx + 1}</td>
+                <td>
+                    <div class="user-cell">
+                        <div class="user-avatar-small">${user.name || user.userName ? (user.name || user.userName).charAt(0).toUpperCase() : '?'}</div>
+                        <div class="user-info">
+                            <span class="user-name">${user.name || user.userName || 'Anonymous'}</span>
+                            ${user.badges && user.badges.length > 0 ? `
+                                <div class="user-badges">
+                                    ${user.badges.slice(0, 3).map(b => `<span class="badge-mini" title="${b.name}">${b.icon}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td class="points-cell">${user.points || user.helpingPoints || 0}</td>
+                <td style="text-align: right; color: var(--manush-text-muted);">${user.contributions || user.helps || 0}</td>
+            </tr>
+        `).join('');
+        
+        // Load user's rank if authenticated
+        if (isLoggedIn()) {
+            loadYourRank();
+        }
+    } catch (e) {
+        document.getElementById('leaderboardBody').innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align: center; padding: var(--space-xl); color: var(--manush-danger)">
+                    Failed to load leaderboard
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Load user's rank
+async function loadYourRank() {
+    try {
+        const params = new URLSearchParams();
+        params.append('category', filters.category);
+        params.append('period', filters.period);
+        
+        const user = await apiFetch(`/leaderboard/me?${params.toString()}`);
+        const card = document.getElementById('yourRankCard');
+        const content = document.getElementById('yourRankContent');
+        
+        if (user && user.rank) {
+            card.style.display = 'block';
+            content.innerHTML = `
+                <div class="rank-cell rank-${user.rank <= 3 ? user.rank : ''}" style="font-size: 1.5rem;">#${user.rank}</div>
+                <div class="user-avatar-small">${user.name ? user.name.charAt(0).toUpperCase() : '?'}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600;">${user.name || 'You'}</div>
+                    <div style="font-size: 0.85rem; color: var(--manush-text-muted);">${user.points || 0} points</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 700; color: var(--manush-primary); font-size: 1.1rem;">${user.points || 0}</div>
+                    <div style="font-size: 0.75rem; color: var(--manush-text-muted);">points</div>
+                </div>
+            `;
+        } else {
+            card.style.display = 'none';
+        }
+    } catch (e) {
+        document.getElementById('yourRankCard').style.display = 'none';
+    }
+}
+
+loadLeaderboard();
+</script>
+</body>
+</html>

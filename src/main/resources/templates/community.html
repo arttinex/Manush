@@ -1,0 +1,273 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community — Manush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/components.css}">
+    <link rel="stylesheet" th:href="@{/static/css/community.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar" role="navigation">
+    <div class="container navbar-inner">
+        <a href="/" class="brand"><span class="script">Manush</span></a>
+        <div class="nav-links">
+            <a href="/feed" class="nav-link">Feed</a>
+            <a href="/help" class="nav-link">Find Help</a>
+            <a href="/help/ask" class="nav-link">Ask Help</a>
+            <a href="/jobs" class="nav-link">Jobs</a>
+            <a href="/blood" class="nav-link">Blood Bank</a>
+            <a href="/jogajog" class="nav-link">Jogajog</a>
+            <a href="/community" class="nav-link" style="color:var(--manush-primary);font-weight:600">Community</a>
+            <a href="/ai" class="nav-link">Manush AI</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="themeToggle">☀️</button>
+            <div id="authArea">
+                <a href="/auth/login" class="btn btn-ghost">Login</a>
+                <a href="/auth/register" class="btn btn-3d">Join</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container community-layout">
+    <!-- Category Sidebar -->
+    <aside class="category-sidebar card-3d" style="padding: var(--space-lg)">
+        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-md)">Categories</h3>
+        <button class="category-btn active" data-cat="">All Discussions</button>
+        <button class="category-btn" data-cat="GENERAL">General</button>
+        <button class="category-btn" data-cat="ANNOUNCEMENTS">Announcements</button>
+        <button class="category-btn" data-cat="EVENTS">Events</button>
+        <button class="category-btn" data-cat="FEEDBACK">Feedback</button>
+        <button class="category-btn" data-cat="HELP_NEEDED">Help Needed</button>
+        <button class="category-btn" data-cat="SUCCESS_STORIES">Success Stories</button>
+        
+        <div style="margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 1px solid var(--manush-border);">
+            <button type="button" id="newDiscussionBtn" class="btn btn-3d btn-full">Start Discussion</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <h1 class="serif" style="font-size: 2.5rem; margin-bottom: var(--space-sm)">Community</h1>
+        <p style="color: var(--manush-text-muted); margin-bottom: var(--space-xl)">
+            Connect with fellow Bangladeshis, share experiences, and stay updated on platform news.
+        </p>
+
+        <!-- Announcement Banner -->
+        <div class="announcement-card" id="announcementBanner" style="display: none;">
+            <span class="announcement-badge">📢 Announcement</span>
+            <h2 style="font-size: 1.3rem; margin-bottom: var(--space-sm);" id="announcementTitle">Loading...</h2>
+            <p style="font-size: 0.95rem; opacity: 0.9;\" id="announcementText">Loading announcement...</p>
+        </div>
+
+        <!-- Discussions List -->
+        <h2 class="serif" style="font-size: 1.5rem; margin-bottom: var(--space-md)">Discussions</h2>
+        <div id="discussionList">
+            <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+            <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+            <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+        </div>
+    </main>
+</div>
+
+<!-- New Discussion Modal -->
+<div id="newDiscussionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: var(--space-md)">
+    <div class="card-3d" style="padding: var(--space-xl); max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
+        <h2 class="serif" style="font-size: 1.5rem; margin-bottom: var(--space-md)">Start a Discussion</h2>
+        <form id="newDiscussionForm">
+            <div class="form-group">
+                <label class="form-label">Title <span class="required">*</span></label>
+                <input type="text" id="discussionTitle" class="form-input" placeholder="What would you like to discuss?" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category <span class="required">*</span></label>
+                <select id="discussionCategory" class="form-input form-select" required>
+                    <option value="">Select category</option>
+                    <option value="GENERAL">General</option>
+                    <option value="EVENTS">Events</option>
+                    <option value="FEEDBACK">Feedback</option>
+                    <option value="HELP_NEEDED">Help Needed</option>
+                    <option value="SUCCESS_STORIES">Success Stories</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Content <span class="required">*</span></label>
+                <textarea id="discussionContent" class="form-input" rows="6" placeholder="Share your thoughts, questions, or ideas..." required></textarea>
+            </div>
+            <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md)">
+                <button type="button" id="closeDiscussionModal" class="btn btn-ghost" style="flex: 1">Cancel</button>
+                <button type="submit" class="btn btn-3d" style="flex: 1">Post Discussion</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+import { apiFetch } from '/static/js/core/api.js';
+import { showSuccess, showError } from '/static/js/core/toast.js';
+import { initTheme } from '/static/js/core/theme.js';
+import { setupNavbar, isLoggedIn } from '/static/js/core/auth.js';
+
+initTheme();
+await setupNavbar();
+
+let currentCategory = '';
+
+// Category filter
+document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.cat;
+        loadDiscussions();
+    });
+});
+
+// Load announcements
+async function loadAnnouncements() {
+    const banner = document.getElementById('announcementBanner');
+    try {
+        const data = await apiFetch('/community/announcements');
+        if (data && data.length > 0) {
+            const latest = data[0];
+            document.getElementById('announcementTitle').textContent = latest.title;
+            document.getElementById('announcementText').textContent = latest.content;
+            banner.style.display = 'block';
+        } else {
+            banner.style.display = 'none';
+        }
+    } catch (e) {
+        banner.style.display = 'none';
+    }
+}
+
+// Load discussions
+async function loadDiscussions() {
+    const list = document.getElementById('discussionList');
+    list.innerHTML = `
+        <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+        <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+    `;
+    
+    try {
+        const query = currentCategory ? `?category=${currentCategory}` : '';
+        const data = await apiFetch(`/community/discussions${query}`);
+        const discussions = (data && data.content) ? data.content : (Array.isArray(data) ? data : []);
+        
+        if (discussions.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state card-3d">
+                    <div class="empty-icon">💬</div>
+                    <h3>No discussions yet</h3>
+                    <p>Be the first to start a conversation!</p>
+                    ${isLoggedIn() ? '<button type="button" onclick="document.getElementById(\'newDiscussionBtn\').click();" class="btn btn-3d btn-sm">Start Discussion</button>' : '<a href="/auth/login" class="btn btn-3d btn-sm">Login to Post</a>'}
+                </div>
+            `;
+            return;
+        }
+        
+        list.innerHTML = discussions.map(disc => `
+            <div class="card-3d discussion-card">
+                <div class="discussion-header">
+                    <div style="flex: 1;">
+                        ${disc.pinned ? '<span class="pinned-indicator">📌 Pinned</span>' : ''}
+                        <h3 class="discussion-title">${disc.title}</h3>
+                        <div class="discussion-meta">
+                            <span>by ${disc.authorName || 'Anonymous'}</span>
+                            <span>•</span>
+                            <span>${disc.createdAt ? new Date(disc.createdAt).toLocaleDateString() : ''}</span>
+                            <span>•</span>
+                            <span class="post-category-tag">${disc.category || 'General'}</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="discussion-preview">${disc.content || ''}</p>
+                <div class="discussion-stats">
+                    <span class="discussion-stat">💬 ${disc.replyCount || 0} replies</span>
+                    <span class="discussion-stat">👁️ ${disc.viewCount || 0} views</span>
+                    <span class="discussion-stat">❤️ ${disc.likeCount || 0} likes</span>
+                </div>
+                <div style="margin-top: var(--space-md)">
+                    <button type="button" class="btn btn-3d btn-sm" onclick="viewDiscussion('${disc.id}')">View Discussion</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        list.innerHTML = `<div class="card-3d" style="padding:24px;text-align:center;color:var(--manush-danger)">Failed to load discussions.</div>`;
+    }
+}
+
+// New discussion modal
+document.getElementById('newDiscussionBtn').addEventListener('click', () => {
+    if (!isLoggedIn()) return window.location.href = '/auth/login';
+    document.getElementById('newDiscussionModal').style.display = 'flex';
+});
+
+document.getElementById('closeDiscussionModal').addEventListener('click', () => {
+    document.getElementById('newDiscussionModal').style.display = 'none';
+});
+
+document.getElementById('newDiscussionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+        await apiFetch('/community/discussions', {
+            method: 'POST',
+            body: JSON.stringify({
+                title: document.getElementById('discussionTitle').value,
+                category: document.getElementById('discussionCategory').value,
+                content: document.getElementById('discussionContent').value
+            })
+        });
+        showSuccess('Discussion posted successfully!');
+        document.getElementById('newDiscussionModal').style.display = 'none';
+        document.getElementById('newDiscussionForm').reset();
+        loadDiscussions();
+    } catch (e) {
+        showError('Failed to post discussion');
+    }
+});
+
+// View discussion
+window.viewDiscussion = async (discId) => {
+    try {
+        const disc = await apiFetch(`/community/discussions/${discId}`);
+        Swal.fire({
+            title: disc.title,
+            html: `
+                <div style="text-align: left; font-size: 0.9rem; line-height: 1.6;">
+                    <p style="color: var(--manush-text-muted); margin-bottom: var(--space-md);">
+                        by ${disc.authorName || 'Anonymous'} • ${disc.createdAt ? new Date(disc.createdAt).toLocaleDateString() : ''}
+                    </p>
+                    <p>${disc.content || ''}</p>
+                    <div style="margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--manush-border);">
+                        <strong>${disc.replyCount || 0}</strong> replies • <strong>${disc.viewCount || 0}</strong> views
+                    </div>
+                </div>
+            `,
+            width: '600px'
+        });
+    } catch (e) {
+        showError('Failed to load discussion');
+    }
+};
+
+loadAnnouncements();
+loadDiscussions();
+</script>
+</body>
+</html>

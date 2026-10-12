@@ -1,0 +1,46 @@
+/* ================================================
+   Feed Page Styles
+   ================================================ */
+.feed-layout { 
+  display: grid; 
+  grid-template-columns: 240px 1fr 280px; 
+  gap: var(--space-lg); 
+  margin-top: var(--space-lg); 
+}
+.category-nav { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+  position: sticky; 
+  top: 80px; 
+}
+.cat-btn { 
+  background: none; 
+  border: none; 
+  text-align: left; 
+  padding: 8px 12px; 
+  border-radius: var(--radius-sm); 
+  font-size: 0.88rem; 
+  cursor: pointer; 
+  color: var(--manush-text-muted); 
+  font-family: var(--font-body); 
+}
+.cat-btn.active, .cat-btn:hover { 
+  background: var(--manush-accent); 
+  color: var(--manush-primary); 
+  font-weight: 600; 
+}
+.create-post-card { 
+  padding: var(--space-md); 
+  margin-bottom: var(--space-md); 
+}
+.search-bar { 
+  width: 100%; 
+  margin-bottom: var(--space-md); 
+}
+
+@media (max-width: 992px) {
+  .feed-layout { grid-template-columns: 1fr; }
+  .category-nav { display: none; }
+  .sidebar-right { display: none; }
+}
