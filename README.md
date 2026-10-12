@@ -289,7 +289,7 @@ ADMIN_SEED_PASSWORD=your-secure-admin-password
 ## 🚀 Getting Started Locally
 
 ### Prerequisites
-- **JDK 21** or later installed.
+- **JDK 25** or later installed.
 - **Git** installed.
 - Access to a **MongoDB Atlas** cluster or a local MongoDB instance.
 
