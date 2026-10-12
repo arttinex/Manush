@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Profile — Manush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/auth.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-card card-3d">
+        <div class="auth-header">
+            <a href="/" class="brand"><span class="script">Manush</span></a>
+            <h1 class="auth-title">Complete Your Profile</h1>
+            <p class="auth-subtitle">We need a few details to connect you to your local community</p>
+        </div>
+
+        <form id="profileForm" class="auth-form" novalidate>
+            <div class="form-group">
+                <label class="form-label">Blood Group <span class="required">(required)</span></label>
+                <select id="bloodGroup" class="form-input form-select" required>
+                    <option value="">Select blood group…</option>
+                    <option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option>
+                    <option>AB+</option><option>AB-</option>
+                    <option>O+</option><option>O-</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">City</label>
+                <input type="text" id="city" class="form-input" placeholder="e.g. Dhaka, Chittagong" required value="Dhaka">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Area / Thana</label>
+                <input type="text" id="area" class="form-input" placeholder="e.g. Uttara, Dhanmondi, Mirpur" required>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <button type="button" class="btn btn-ghost btn-sm" id="detectLocBtn">📍 Detect My Location</button>
+                <span id="locStatus" style="font-size:0.75rem; color:var(--manush-text-muted); margin-left:8px;"></span>
+            </div>
+            <input type="hidden" id="lat" value="">
+            <input type="hidden" id="lng" value="">
+
+            <button type="submit" class="btn btn-3d btn-full" id="saveBtn">Complete Setup</button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+import { apiFetch } from '/static/js/core/api.js';
+import { initTheme } from '/static/js/core/theme.js';
+
+initTheme();
+
+document.getElementById('detectLocBtn').addEventListener('click', () => {
+    const status = document.getElementById('locStatus');
+    if (!navigator.geolocation) {
+        status.textContent = 'Geolocation not supported';
+        return;
+    }
+    status.textContent = 'Detecting…';
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            document.getElementById('lat').value = pos.coords.latitude;
+            document.getElementById('lng').value = pos.coords.longitude;
+            status.textContent = 'Location acquired! ✓';
+        },
+        err => {
+            status.textContent = 'Location access denied or unavailable';
+        }
+    );
+});
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+        await apiFetch('/users/me/complete-profile', {
+            method: 'PUT',
+            body: JSON.stringify({
+                bloodGroup: document.getElementById('bloodGroup').value,
+                city: document.getElementById('city').value,
+                area: document.getElementById('area').value,
+                latitude: document.getElementById('lat').value ? parseFloat(document.getElementById('lat').value) : null,
+                longitude: document.getElementById('lng').value ? parseFloat(document.getElementById('lng').value) : null
+            })
+        });
+        Swal.fire({ icon: 'success', title: 'Profile completed!', timer: 1500, showConfirmButton: false })
+            .then(() => window.location.href = '/feed');
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Complete Setup';
+    }
+});
+</script>
+</body>
+</html>

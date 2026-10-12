@@ -1,0 +1,65 @@
+/* ================================================
+   MANUSH Design Tokens — Golden Luxe palette
+   ================================================ */
+:root {
+  /* Palette */
+  --manush-primary: #8B0000;
+  --manush-primary-dark: #5B0202;
+  --manush-accent: #EDE7C7;
+  --manush-ink: #200E01;
+
+  /* Semantic */
+  --manush-bg: #FAF8F2;
+  --manush-surface: #FFFFFF;
+  --manush-text: #1A1210;
+  --manush-text-muted: #6B5B52;
+  --manush-border: #E6DFC8;
+  --manush-danger: #8B0000;
+  --manush-success: #1E7A4C;
+  --manush-warning: #B8860B;
+  --manush-info: #1A5276;
+
+  /* Typography */
+  --font-display: 'Playfair Display', serif;
+  --font-script: 'Pinyon Script', cursive;
+  --font-body: 'Inter', sans-serif;
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --radius-full: 9999px;
+
+  /* 3D Shadows */
+  --shadow-3d-sm: 0 2px 4px rgba(32,14,1,.08), 0 1px 2px rgba(32,14,1,.12);
+  --shadow-3d-md: 0 8px 24px rgba(32,14,1,.14), 0 2px 6px rgba(32,14,1,.10);
+  --shadow-3d-lg: 0 20px 48px rgba(32,14,1,.22), 0 6px 16px rgba(32,14,1,.12);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+
+  /* Transitions */
+  --transition-fast: .1s ease;
+  --transition-base: .18s ease;
+  --transition-slow: .3s ease;
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+  --manush-bg: #200E01;
+  --manush-surface: #2B1506;
+  --manush-text: #EDE7C7;
+  --manush-text-muted: #C9B98F;
+  --manush-border: #3C2410;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

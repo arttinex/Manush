@@ -1,0 +1,415 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogajog — Manush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/components.css}">
+    <link rel="stylesheet" th:href="@{/static/css/jogajog.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar" role="navigation">
+    <div class="container navbar-inner">
+        <a href="/" class="brand"><span class="script">Manush</span></a>
+        <div class="nav-links">
+            <a href="/feed" class="nav-link">Feed</a>
+            <a href="/help" class="nav-link">Find Help</a>
+            <a href="/help/ask" class="nav-link">Ask Help</a>
+            <a href="/jobs" class="nav-link">Jobs</a>
+            <a href="/blood" class="nav-link">Blood Bank</a>
+            <a href="/jogajog" class="nav-link" style="color:var(--manush-primary);font-weight:600">Jogajog</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="themeToggle">☀️</button>
+            <div id="authArea">
+                <a href="/auth/login" class="btn btn-ghost">Login</a>
+                <a href="/auth/register" class="btn btn-3d">Join</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container jogajog-layout">
+    <!-- Conversation List -->
+    <aside class="conversation-list card-3d">
+        <div class="conversation-header">
+            <h3 style="font-size: 1.1rem; margin-bottom: var(--space-sm)">Messages</h3>
+            <div class="conversation-search">
+                <input type="text" id="convSearch" class="form-input" placeholder="Search conversations...">
+            </div>
+            <button type="button" id="newConvBtn" class="btn btn-3d btn-sm btn-full" style="margin-top: var(--space-sm)">+ New Message</button>
+        </div>
+        <div class="conversation-items" id="conversationList">
+            <div style="padding: var(--space-md); text-align: center; color: var(--manush-text-muted)">
+                Loading conversations...
+            </div>
+        </div>
+    </aside>
+
+    <!-- Chat Area -->
+    <main class="chat-area card-3d" id="chatArea">
+        <div class="empty-chat" id="emptyChat">
+            <div class="empty-chat-icon">💬</div>
+            <h3>Select a conversation</h3>
+            <p>Choose a conversation from the list or start a new message</p>
+        </div>
+        
+        <div id="activeChat" style="display: none; flex-direction: column; height: 100%;">
+            <div class="chat-header">
+                <button type="button" id="backToList" class="btn btn-ghost btn-sm" style="display: none;">← Back</button>
+                <div class="chat-header-avatar" id="chatAvatar">?</div>
+                <div style="flex: 1">
+                    <div style="font-weight: 600;" id="chatName">Conversation</div>
+                    <div style="font-size: 0.8rem; color: var(--manush-text-muted);" id="chatStatus">
+                        <span class="online-indicator"></span> Active
+                    </div>
+                </div>
+                <button type="button" id="blockUserBtn" class="btn btn-ghost btn-sm" style="color: var(--manush-danger);">Block</button>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be loaded here -->
+            </div>
+            
+            <div class="chat-input-area">
+                <input type="text" id="messageInput" class="form-input chat-input" placeholder="Type a message...">
+                <button type="button" id="sendMessageBtn" class="btn btn-3d">Send</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- New Conversation Modal -->
+<div id="newConvModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: var(--space-md)">
+    <div class="card-3d" style="padding: var(--space-xl); max-width: 500px; width: 100%;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-md)">
+            <h2 class="serif" style="font-size: 1.5rem; margin:0">New Message</h2>
+            <button type="button" id="closeNewConvX" class="btn btn-ghost btn-sm" style="font-size:1.2rem; line-height:1">✕</button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Search user by name or email</label>
+            <input type="text" id="userSearch" class="form-input" placeholder="Search contacts or pick below..." autocomplete="off">
+        </div>
+        <div id="userResults" style="margin-top: var(--space-sm); max-height: 240px; overflow-y: auto; border: 1px solid var(--manush-border); border-radius: var(--radius-sm); padding: 8px;">
+            <p style="color:var(--manush-text-muted);font-size:0.85rem;text-align:center;padding:12px 0;">Loading contacts...</p>
+        </div>
+        <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md)">
+            <button type="button" id="closeNewConv" class="btn btn-ghost" style="flex: 1">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { apiFetch } from '/static/js/core/api.js';
+import { showSuccess, showError } from '/static/js/core/toast.js';
+import { initTheme } from '/static/js/core/theme.js';
+import { setupNavbar, isLoggedIn, getCurrentUserId } from '/static/js/core/auth.js';
+
+initTheme();
+await setupNavbar();
+
+if (!isLoggedIn()) {
+    window.location.href = '/auth/login';
+}
+
+let currentConversationId = null;
+const myUserId = getCurrentUserId();
+
+function getOtherParty(conv) {
+    if (!conv) return { name: 'Conversation', avatar: '?' };
+    if (conv.participantIds && conv.participantNames && conv.participantIds.length === conv.participantNames.length) {
+        const otherIdx = conv.participantIds.findIndex(id => id !== myUserId);
+        if (otherIdx !== -1 && conv.participantNames[otherIdx]) {
+            const name = conv.participantNames[otherIdx];
+            return { name, avatar: name.charAt(0).toUpperCase() };
+        }
+    }
+    const name = conv.participantName || (conv.participantNames ? conv.participantNames.find(n => n) : null) || 'Conversation';
+    return { name, avatar: name.charAt(0).toUpperCase() };
+}
+
+// Load conversations
+async function loadConversations() {
+    try {
+        const data = await apiFetch('/conversations');
+        const conversations = Array.isArray(data) ? data : (data.content || []);
+        const container = document.getElementById('conversationList');
+        
+        if (conversations.length === 0) {
+            container.innerHTML = `
+                <div style="padding: var(--space-md); text-align: center; color: var(--manush-text-muted)">
+                    <div style="font-size: 2rem; margin-bottom: var(--space-sm)">💬</div>
+                    <p>No conversations yet</p>
+                    <p style="font-size: 0.85rem">Click "+ New Message" above to start talking!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = conversations.map(conv => {
+            const other = getOtherParty(conv);
+            return `
+                <div class="conversation-item ${currentConversationId === conv.id ? 'active' : ''}" data-id="${conv.id}" onclick="selectConversation('${conv.id}')">
+                    <div class="conv-avatar">${other.avatar}</div>
+                    <div class="conv-info">
+                        <div class="conv-header">
+                            <span class="conv-name">${other.name}</span>
+                            <span class="conv-time">${conv.lastMessageTime ? new Date(conv.lastMessageTime).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}</span>
+                        </div>
+                        <div class="conv-preview">${conv.lastMessage || 'No messages yet'}</div>
+                    </div>
+                    ${conv.unreadCount > 0 ? `<div class="unread-badge">${conv.unreadCount}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    } catch (e) {
+        document.getElementById('conversationList').innerHTML = `
+            <div style="padding: var(--space-md); text-align: center; color: var(--manush-danger)">
+                Failed to load conversations
+            </div>
+        `;
+    }
+}
+
+// Select conversation
+window.selectConversation = async (convId) => {
+    currentConversationId = convId;
+    
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.id === convId);
+    });
+    
+    if (window.innerWidth <= 768) {
+        document.querySelector('.conversation-list').classList.add('hidden');
+        document.getElementById('chatArea').classList.add('active');
+        document.getElementById('backToList').style.display = 'block';
+    }
+    
+    try {
+        const conv = await apiFetch(`/conversations/${convId}`);
+        const other = getOtherParty(conv);
+        
+        document.getElementById('chatAvatar').textContent = other.avatar;
+        document.getElementById('chatName').textContent = other.name;
+        document.getElementById('chatStatus').innerHTML = '<span class="online-indicator"></span> Active';
+        
+        document.getElementById('emptyChat').style.display = 'none';
+        document.getElementById('activeChat').style.display = 'flex';
+        
+        await loadMessages(convId);
+    } catch (e) {
+        showError('Failed to load conversation');
+    }
+};
+
+// Load messages
+async function loadMessages(convId) {
+    try {
+        const data = await apiFetch(`/conversations/${convId}/messages`);
+        const messages = Array.isArray(data) ? data : (data.content || []);
+        const container = document.getElementById('chatMessages');
+        
+        if (messages.length === 0) {
+            container.innerHTML = '<p style="color:var(--manush-text-muted);text-align:center;padding:20px;">Say hello to start the chat!</p>';
+            return;
+        }
+
+        container.innerHTML = messages.map(msg => {
+            const isSentByMe = myUserId && msg.senderId === myUserId;
+            return `
+                <div class="message ${isSentByMe ? 'message-sent' : 'message-received'}">
+                    <div>${msg.text || ''}</div>
+                    <div class="message-meta">${msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                </div>
+            `;
+        }).join('');
+        
+        container.scrollTop = container.scrollHeight;
+    } catch (e) {
+        document.getElementById('chatMessages').innerHTML = '<p style="color:var(--manush-danger);text-align:center">Failed to load messages</p>';
+    }
+}
+
+// Send message
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    
+    if (!text || !currentConversationId) return;
+    
+    try {
+        await apiFetch(`/conversations/${currentConversationId}/messages`, {
+            method: 'POST',
+            body: JSON.stringify({ text })
+        });
+        input.value = '';
+        await loadMessages(currentConversationId);
+        await loadConversations();
+    } catch (e) {
+        showError('Failed to send message');
+    }
+}
+
+// Event listeners
+document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+document.getElementById('messageInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+document.getElementById('backToList').addEventListener('click', () => {
+    document.querySelector('.conversation-list').classList.remove('hidden');
+    document.getElementById('chatArea').classList.remove('active');
+    document.getElementById('backToList').style.display = 'none';
+});
+
+// Modal open/close & user search
+const modal = document.getElementById('newConvModal');
+document.getElementById('newConvBtn').addEventListener('click', async () => {
+    modal.style.display = 'flex';
+    document.getElementById('userSearch').value = '';
+    await searchModalUsers('');
+    document.getElementById('userSearch').focus();
+});
+
+function closeModal() {
+    modal.style.display = 'none';
+}
+document.getElementById('closeNewConv').addEventListener('click', closeModal);
+const closeX = document.getElementById('closeNewConvX');
+if (closeX) closeX.addEventListener('click', closeModal);
+
+async function searchModalUsers(query) {
+    const resultsContainer = document.getElementById('userResults');
+    resultsContainer.innerHTML = '<p style="color:var(--manush-text-muted);font-size:0.85rem;text-align:center;padding:12px 0;">Searching users...</p>';
+    try {
+        const data = await apiFetch(`/conversations/users/search?query=${encodeURIComponent(query || '')}`);
+        const users = (Array.isArray(data) ? data : (data.content || [])).filter(u => u.id !== myUserId);
+        
+        if (users.length === 0) {
+            resultsContainer.innerHTML = '<p style="color:var(--manush-text-muted);font-size:0.85rem;text-align:center;padding:12px 0;">No other users found</p>';
+            return;
+        }
+        
+        resultsContainer.innerHTML = users.map(user => `
+            <div style="padding: 10px; border-bottom: 1px solid var(--manush-border); cursor: pointer; display: flex; align-items: center; gap: 10px; border-radius: var(--radius-sm);" onclick="startConversation('${user.id}')" onmouseover="this.style.background='rgba(139,0,0,0.06)'" onmouseout="this.style.background='transparent'">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--manush-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--manush-primary);">
+                    ${user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                </div>
+                <div style="flex:1">
+                    <div style="font-weight: 600; font-size: 0.95rem;">${user.name || 'Member'}</div>
+                    <div style="font-size: 0.8rem; color: var(--manush-text-muted);">${user.email || user.area || ''}</div>
+                </div>
+                <button type="button" class="btn btn-3d btn-sm">Chat</button>
+            </div>
+        `).join('');
+    } catch (e) {
+        resultsContainer.innerHTML = '<p style="color:var(--manush-danger);font-size:0.85rem;text-align:center;padding:12px 0;">Failed to load contacts</p>';
+    }
+}
+
+let searchTimer = null;
+document.getElementById('userSearch').addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    const query = e.target.value.trim();
+    searchTimer = setTimeout(() => {
+        searchModalUsers(query);
+    }, 250);
+});
+
+window.startConversation = async (userId) => {
+    try {
+        const conv = await apiFetch('/conversations', {
+            method: 'POST',
+            body: JSON.stringify({ participantId: userId })
+        });
+        closeModal();
+        showSuccess('Conversation started!');
+        await loadConversations();
+        if (conv && conv.id) {
+            await selectConversation(conv.id);
+        }
+    } catch (e) {
+        showError('Failed to start conversation');
+    }
+};
+
+// Block user
+document.getElementById('blockUserBtn').addEventListener('click', async () => {
+    if (!currentConversationId) return;
+    
+    const { value: confirm } = await Swal.fire({
+        title: 'Block this user?',
+        text: 'You will not receive messages from this user anymore.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--manush-danger)',
+        confirmButtonText: 'Block'
+    });
+    
+    if (confirm) {
+        try {
+            await apiFetch(`/conversations/${currentConversationId}/block`, { method: 'POST' });
+            showSuccess('User blocked');
+            currentConversationId = null;
+            document.getElementById('emptyChat').style.display = 'flex';
+            document.getElementById('activeChat').style.display = 'none';
+            await loadConversations();
+        } catch (e) {
+            showError('Failed to block user');
+        }
+    }
+});
+
+// Search conversations
+document.getElementById('convSearch').addEventListener('input', async (e) => {
+    const query = e.target.value.trim();
+    if (!query) {
+        await loadConversations();
+        return;
+    }
+    
+    try {
+        const data = await apiFetch(`/conversations/search?query=${encodeURIComponent(query)}`);
+        const conversations = Array.isArray(data) ? data : (data.content || []);
+        const container = document.getElementById('conversationList');
+        
+        if (conversations.length === 0) {
+            container.innerHTML = '<div style="padding: var(--space-md); text-align: center; color: var(--manush-text-muted)">No conversations found</div>';
+            return;
+        }
+        
+        container.innerHTML = conversations.map(conv => {
+            const other = getOtherParty(conv);
+            return `
+                <div class="conversation-item" data-id="${conv.id}" onclick="selectConversation('${conv.id}')">
+                    <div class="conv-avatar">${other.avatar}</div>
+                    <div class="conv-info">
+                        <div class="conv-header">
+                            <span class="conv-name">${other.name}</span>
+                            <span class="conv-time">${conv.lastMessageTime ? new Date(conv.lastMessageTime).toLocaleDateString() : ''}</span>
+                        </div>
+                        <div class="conv-preview">${conv.lastMessage || 'No messages yet'}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (e) {}
+});
+
+loadConversations();
+</script>
+</body>
+</html>

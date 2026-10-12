@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Manush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/auth.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-card card-3d">
+        <div class="auth-header">
+            <a href="/" class="brand"><span class="script">Manush</span></a>
+            <h1 class="auth-title">Join Manush</h1>
+            <p class="auth-subtitle">Create your account — it's free</p>
+        </div>
+
+        <form id="registerForm" class="auth-form" novalidate>
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="name" class="form-input" placeholder="Your name" required minlength="2" maxlength="60">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="email" class="form-input" placeholder="your@email.com" autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone (optional if email given)</label>
+                <input type="tel" id="phone" class="form-input" placeholder="01xxxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Blood Group <span class="required">(required)</span></label>
+                <select id="bloodGroup" class="form-input form-select" required>
+                    <option value="">Select blood group…</option>
+                    <option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option>
+                    <option>AB+</option><option>AB-</option>
+                    <option>O+</option><option>O-</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">I am a</label>
+                <select id="role" class="form-input form-select">
+                    <option value="USER">Regular User</option>
+                    <option value="PROFESSIONAL">Professional (Electrician, Plumber, etc.)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="regPassword" class="form-input" placeholder="Min 8 characters" required minlength="8" autocomplete="new-password">
+            </div>
+            <button type="submit" class="btn btn-3d btn-full" id="regBtn">Create Account</button>
+        </form>
+
+        <div class="auth-divider"><span>or</span></div>
+        <a href="/oauth2/authorization/google" class="btn-google">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="" width="20" height="20">
+            Continue with Google
+        </a>
+        <p class="auth-footer">Already have an account? <a href="/auth/login">Sign in</a></p>
+    </div>
+</div>
+
+<script type="module">
+import { apiFetch } from '/static/js/core/api.js';
+import { initTheme } from '/static/js/core/theme.js';
+
+initTheme();
+
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('regBtn');
+    btn.disabled = true;
+    btn.textContent = 'Creating account…';
+    try {
+        const data = await apiFetch('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value || null,
+                phone: document.getElementById('phone').value || null,
+                bloodGroup: document.getElementById('bloodGroup').value,
+                role: document.getElementById('role').value,
+                password: document.getElementById('regPassword').value
+            })
+        });
+        localStorage.setItem('access_token', data.accessToken);
+        localStorage.setItem('refresh_token', data.refreshToken);
+        Swal.fire({ icon: 'success', title: 'Welcome to Manush!', text: 'Account created successfully.', timer: 2000 })
+            .then(() => window.location.href = '/auth/complete-profile');
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+    }
+});
+</script>
+</body>
+</html>

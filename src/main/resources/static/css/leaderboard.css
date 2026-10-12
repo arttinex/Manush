@@ -1,0 +1,192 @@
+/* ================================================
+   Leaderboard Page Styles
+   ================================================ */
+.leaderboard-layout { 
+  display: grid; 
+  grid-template-columns: 280px 1fr; 
+  gap: var(--space-lg); 
+  margin-top: var(--space-lg); 
+}
+.filter-sidebar { 
+  position: sticky; 
+  top: 80px; 
+  height: fit-content; 
+}
+.filter-group { 
+  margin-bottom: var(--space-md); 
+}
+.filter-label { 
+  font-size: 0.85rem; 
+  font-weight: 600; 
+  color: var(--manush-text); 
+  margin-bottom: var(--space-sm); 
+  display: block; 
+}
+.filter-btn {
+  width: 100%;
+  padding: var(--space-sm);
+  border: 1.5px solid var(--manush-border);
+  border-radius: var(--radius-sm);
+  background: var(--manush-surface);
+  color: var(--manush-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-bottom: var(--space-xs);
+}
+.filter-btn:hover { 
+  border-color: var(--manush-primary); 
+  color: var(--manush-primary); 
+}
+.filter-btn.active { 
+  background: var(--manush-primary); 
+  border-color: var(--manush-primary); 
+  color: var(--manush-accent); 
+}
+
+.leaderboard-table { 
+  width: 100%; 
+  border-collapse: separate; 
+  border-spacing: 0; 
+}
+.leaderboard-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--manush-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--space-md);
+  border-bottom: 2px solid var(--manush-border);
+  background: var(--manush-surface);
+}
+.leaderboard-table td { 
+  padding: var(--space-md); 
+  border-bottom: 1px solid var(--manush-border); 
+}
+.leaderboard-row:hover { 
+  background: var(--manush-accent); 
+}
+
+.rank-cell { 
+  font-weight: 700; 
+  font-size: 1.1rem; 
+  width: 60px; 
+  text-align: center; 
+}
+.rank-1 { 
+  color: #FFD700; 
+  font-size: 1.4rem; 
+}
+.rank-2 { 
+  color: #C0C0C0; 
+  font-size: 1.3rem; 
+}
+.rank-3 { 
+  color: #CD7F32; 
+  font-size: 1.2rem; 
+}
+
+.user-cell { 
+  display: flex; 
+  align-items: center; 
+  gap: var(--space-sm); 
+}
+.user-avatar-small { 
+  width: 40px; 
+  height: 40px; 
+  border-radius: 50%; 
+  background: var(--manush-accent); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-weight: 700; 
+  color: var(--manush-primary); 
+}
+.user-info { 
+  display: flex; 
+  flex-direction: column; 
+}
+.user-name { 
+  font-weight: 600; 
+  font-size: 0.95rem; 
+}
+.user-badges { 
+  display: flex; 
+  gap: 4px; 
+  margin-top: 2px; 
+}
+.badge-mini { 
+  width: 16px; 
+  height: 16px; 
+  border-radius: 50%; 
+  font-size: 0.6rem; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+}
+
+.points-cell { 
+  font-weight: 700; 
+  color: var(--manush-primary); 
+  font-size: 1.1rem; 
+  text-align: right; 
+}
+
+.top-three-card { 
+  background: linear-gradient(135deg, var(--manush-primary), var(--manush-primary-dark)); 
+  color: var(--manush-accent); 
+  padding: var(--space-xl); 
+  text-align: center; 
+  border-radius: var(--radius-lg); 
+  margin-bottom: var(--space-xl); 
+}
+.top-three-grid { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: var(--space-md); 
+  margin-top: var(--space-lg); 
+}
+.top-user { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+}
+.top-avatar { 
+  width: 80px; 
+  height: 80px; 
+  border-radius: 50%; 
+  background: var(--manush-accent); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 2rem; 
+  font-weight: 700; 
+  color: var(--manush-primary); 
+  border: 4px solid var(--manush-accent); 
+  margin-bottom: var(--space-sm); 
+}
+.top-avatar.rank-1 { 
+  width: 100px; 
+  height: 100px; 
+  font-size: 2.5rem; 
+  border-color: #FFD700; 
+}
+.top-name { 
+  font-weight: 600; 
+  font-size: 0.9rem; 
+}
+.top-points { 
+  font-size: 1.2rem; 
+  font-weight: 700; 
+  margin-top: var(--space-xs); 
+}
+.top-crown { 
+  font-size: 2rem; 
+  margin-bottom: var(--space-xs); 
+}
+
+@media (max-width: 992px) {
+  .leaderboard-layout { grid-template-columns: 1fr; }
+  .filter-sidebar { display: none; }
+}

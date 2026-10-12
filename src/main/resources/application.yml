@@ -1,0 +1,87 @@
+spring:
+  application:
+    name: manush
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://arttinex03_db_user:KAHMSYOO9zfsVQYn@manushdb.qmkguvh.mongodb.net/manush?retryWrites=true&w=majority&appName=ManushDB}
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+            client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+
+manush:
+  jwt:
+    secret: ${JWT_SECRET}
+  storage:
+    provider: ${STORAGE_PROVIDER:local}
+  gdrive:
+    folder-id: ${GDRIVE_FOLDER_ID:}
+    service-account-json: ${GOOGLE_SERVICE_ACCOUNT_JSON:}
+
+ai:
+  provider: ${AI_PROVIDER:mock}
+  api-key: ${GEMINI_API_KEY:}
+
+
+  ratelimit:
+    login:
+      capacity: 5
+      refill-minutes: 1
+    register:
+      capacity: 5
+      refill-minutes: 10
+    post:
+      capacity: 10
+      refill-minutes: 1
+    comment:
+      capacity: 30
+      refill-minutes: 1
+    message:
+      capacity: 60
+      refill-minutes: 1
+    ai:
+      capacity: 20
+      refill-minutes: 1
+    blood-request:
+      capacity: 5
+      refill-hours: 1
+
+  admin:
+    seed-email: ${ADMIN_SEED_EMAIL:admin@manush.app}
+    seed-password: ${ADMIN_SEED_PASSWORD:}
+    seed-enabled: ${ADMIN_SEED_ENABLED:false}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.manush: DEBUG
+    org.springframework.security: WARN

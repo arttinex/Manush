@@ -1,0 +1,406 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs — Manush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/components.css}">
+    <link rel="stylesheet" th:href="@{/static/css/jobs.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar" role="navigation">
+    <div class="container navbar-inner">
+        <a href="/" class="brand"><span class="script">Manush</span></a>
+        <div class="nav-links">
+            <a href="/feed" class="nav-link">Feed</a>
+            <a href="/help" class="nav-link">Find Help</a>
+            <a href="/help/ask" class="nav-link">Ask Help</a>
+            <a href="/jobs" class="nav-link" style="color:var(--manush-primary);font-weight:600">Jobs</a>
+            <a href="/blood" class="nav-link">Blood Bank</a>
+            <a href="/jogajog" class="nav-link">Jogajog</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="themeToggle">☀️</button>
+            <div id="authArea">
+                <a href="/auth/login" class="btn btn-ghost">Login</a>
+                <a href="/auth/register" class="btn btn-3d">Join</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container jobs-layout">
+    <!-- Filters Sidebar -->
+    <aside class="filter-sidebar card-3d" style="padding: var(--space-lg)">
+        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-md)">Filters</h3>
+
+        <div class="filter-group">
+            <label class="filter-label">Category</label>
+            <div id="categoryFilters">
+                <button class="filter-chip active" data-cat="">All</button>
+                <button class="filter-chip" data-cat="TECHNOLOGY">Technology</button>
+                <button class="filter-chip" data-cat="HEALTHCARE">Healthcare</button>
+                <button class="filter-chip" data-cat="EDUCATION">Education</button>
+                <button class="filter-chip" data-cat="CONSTRUCTION">Construction</button>
+                <button class="filter-chip" data-cat="SERVICES">Services</button>
+                <button class="filter-chip" data-cat="RETAIL">Retail</button>
+                <button class="filter-chip" data-cat="OTHER">Other</button>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">Employment Type</label>
+            <div id="typeFilters">
+                <button class="filter-chip active" data-type="">All</button>
+                <button class="filter-chip" data-type="FULL_TIME">Full-time</button>
+                <button class="filter-chip" data-type="PART_TIME">Part-time</button>
+                <button class="filter-chip" data-type="CONTRACT">Contract</button>
+                <button class="filter-chip" data-type="FREELANCE">Freelance</button>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">Location</label>
+            <input type="text" id="locationFilter" class="form-input" placeholder="Enter area">
+            <button type="button" id="useJobLocation" class="btn btn-ghost btn-sm" style="margin-top: var(--space-sm); width: 100%">
+                📍 Use my location
+            </button>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">Salary Range</label>
+            <select id="salaryFilter" class="form-input form-select">
+                <option value="">Any</option>
+                <option value="0-10000">Under ৳10,000</option>
+                <option value="10000-25000">৳10,000 - ৳25,000</option>
+                <option value="25000-50000">৳25,000 - ৳50,000</option>
+                <option value="50000-100000">৳50,000 - ৳100,000</option>
+                <option value="100000+">৳100,000+</option>
+            </select>
+        </div>
+
+        <button type="button" id="clearJobFilters" class="btn btn-ghost btn-sm btn-full" style="margin-top: var(--space-md)">
+            Clear all filters
+        </button>
+    </aside>
+
+    <!-- Job Listings -->
+    <main>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md)">
+            <h1 class="serif" style="font-size: 2rem">Job Opportunities</h1>
+            <button type="button" id="postJobBtn" class="btn btn-3d">Post a Job</button>
+        </div>
+
+        <div id="jobList">
+            <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+            <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+            <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+        </div>
+    </main>
+</div>
+
+<!-- Post Job Modal -->
+<div id="postJobModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: var(--space-md)">
+    <div class="card-3d" style="padding: var(--space-xl); max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
+        <h2 class="serif" style="font-size: 1.5rem; margin-bottom: var(--space-md)">Post a Job</h2>
+        <form id="postJobForm">
+            <div class="form-group">
+                <label class="form-label">Job Title <span class="required">*</span></label>
+                <input type="text" id="jobTitle" class="form-input" placeholder="e.g., Electrician needed for residential wiring" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Company/Individual Name <span class="required">*</span></label>
+                <input type="text" id="jobCompany" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description <span class="required">*</span></label>
+                <textarea id="jobDescription" class="form-input" rows="4" placeholder="Describe the job requirements, responsibilities, and qualifications..." required></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label">Category <span class="required">*</span></label>
+                    <select id="jobCategory" class="form-input form-select" required>
+                        <option value="">Select category</option>
+                        <option value="TECHNOLOGY">Technology</option>
+                        <option value="HEALTHCARE">Healthcare</option>
+                        <option value="EDUCATION">Education</option>
+                        <option value="CONSTRUCTION">Construction</option>
+                        <option value="SERVICES">Services</option>
+                        <option value="RETAIL">Retail</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Employment Type <span class="required">*</span></label>
+                    <select id="jobType" class="form-input form-select" required>
+                        <option value="FULL_TIME">Full-time</option>
+                        <option value="PART_TIME">Part-time</option>
+                        <option value="CONTRACT">Contract</option>
+                        <option value="FREELANCE">Freelance</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label">Salary Range</label>
+                    <input type="text" id="jobSalary" class="form-input" placeholder="e.g., ৳15,000 - ৳25,000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location <span class="required">*</span></label>
+                    <input type="text" id="jobLocation" class="form-input" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Required Skills (comma separated)</label>
+                <input type="text" id="jobSkills" class="form-input" placeholder="e.g., electrical, wiring, safety protocols">
+            </div>
+            <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md)">
+                <button type="button" id="closeJobModal" class="btn btn-ghost" style="flex: 1">Cancel</button>
+                <button type="submit" class="btn btn-3d" style="flex: 1">Post Job</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+import { apiFetch } from '/static/js/core/api.js';
+import { showSuccess, showError } from '/static/js/core/toast.js';
+import { initTheme } from '/static/js/core/theme.js';
+import { setupNavbar, isLoggedIn } from '/static/js/core/auth.js';
+
+initTheme();
+await setupNavbar();
+
+// Filter state
+let filters = {
+    category: '',
+    type: '',
+    location: null,
+    salary: ''
+};
+
+// Category filter
+document.querySelectorAll('#categoryFilters .filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('#categoryFilters .filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        filters.category = chip.dataset.cat;
+        loadJobs();
+    });
+});
+
+// Type filter
+document.querySelectorAll('#typeFilters .filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('#typeFilters .filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        filters.type = chip.dataset.type;
+        loadJobs();
+    });
+});
+
+// Salary filter
+document.getElementById('salaryFilter').addEventListener('change', (e) => {
+    filters.salary = e.target.value;
+    loadJobs();
+});
+
+// Location filter
+document.getElementById('useJobLocation').addEventListener('click', () => {
+    if (!navigator.geolocation) {
+        showError('Geolocation is not supported by your browser');
+        return;
+    }
+    const btn = document.getElementById('useJobLocation');
+    btn.disabled = true;
+    btn.textContent = 'Locating...';
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            filters.location = { lat: position.coords.latitude, lng: position.coords.longitude };
+            document.getElementById('locationFilter').value = `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+            showSuccess('Location detected!');
+            btn.disabled = false;
+            btn.textContent = '📍 Use my location';
+            loadJobs();
+        },
+        (error) => {
+            showError('Location access denied');
+            btn.disabled = false;
+            btn.textContent = '📍 Use my location';
+        }
+    );
+});
+
+document.getElementById('clearJobFilters').addEventListener('click', () => {
+    filters = { category: '', type: '', location: null, salary: '' };
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('#categoryFilters .filter-chip[data-cat=""]').classList.add('active');
+    document.querySelector('#typeFilters .filter-chip[data-type=""]').classList.add('active');
+    document.getElementById('locationFilter').value = '';
+    document.getElementById('salaryFilter').value = '';
+    loadJobs();
+});
+
+// Load jobs
+async function loadJobs() {
+    const jobList = document.getElementById('jobList');
+    jobList.innerHTML = `
+        <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+        <div class="skeleton skeleton-card" style="margin-bottom: 16px"></div>
+    `;
+    
+    try {
+        const params = new URLSearchParams();
+        if (filters.category) params.append('category', filters.category);
+        if (filters.type) params.append('type', filters.type);
+        if (filters.salary) params.append('salary', filters.salary);
+        if (filters.location) {
+            params.append('lat', filters.location.lat);
+            params.append('lng', filters.location.lng);
+        }
+        
+        const data = await apiFetch(`/jobs?${params.toString()}`);
+        const jobs = (data && data.content) ? data.content : (Array.isArray(data) ? data : []);
+        
+        if (jobs.length === 0) {
+            jobList.innerHTML = `
+                <div class="empty-state card-3d">
+                    <div class="empty-icon">💼</div>
+                    <h3>No jobs found</h3>
+                    <p>Try adjusting your filters or check back later.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        jobList.innerHTML = jobs.map(job => `
+            <div class="card-3d job-card">
+                <div class="job-header">
+                    <div>
+                        <h3 class="job-title">${job.title}</h3>
+                        <div class="job-company">${job.company || 'Individual'}</div>
+                    </div>
+                    <span class="job-status status-${(job.status || 'active').toLowerCase()}">${job.status || 'ACTIVE'}</span>
+                </div>
+                <div class="job-meta">
+                    <div class="job-meta-item">📍 ${job.location || 'Remote'}</div>
+                    <div class="job-meta-item">💼 ${job.employmentType || 'Not specified'}</div>
+                    <div class="job-meta-item job-salary">💰 ${job.salaryRange || 'Negotiable'}</div>
+                </div>
+                <p class="job-description">${job.description || ''}</p>
+                ${job.skills && job.skills.length > 0 ? `
+                    <div class="job-skills">
+                        ${job.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                    </div>
+                ` : ''}
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md)">
+                    <button type="button" class="btn btn-3d btn-sm" onclick="applyForJob('${job.id}')">Apply Now</button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="viewJobDetails('${job.id}')">View Details</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        jobList.innerHTML = `<div class="card-3d" style="padding:24px;text-align:center;color:var(--manush-danger)">Failed to load jobs.</div>`;
+    }
+}
+
+// Post job modal
+document.getElementById('postJobBtn').addEventListener('click', () => {
+    if (!isLoggedIn()) return window.location.href = '/auth/login';
+    document.getElementById('postJobModal').style.display = 'flex';
+});
+
+document.getElementById('closeJobModal').addEventListener('click', () => {
+    document.getElementById('postJobModal').style.display = 'none';
+});
+
+document.getElementById('postJobForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+        await apiFetch('/jobs', {
+            method: 'POST',
+            body: JSON.stringify({
+                title: document.getElementById('jobTitle').value,
+                company: document.getElementById('jobCompany').value,
+                description: document.getElementById('jobDescription').value,
+                category: document.getElementById('jobCategory').value,
+                employmentType: document.getElementById('jobType').value,
+                salaryRange: document.getElementById('jobSalary').value,
+                location: document.getElementById('jobLocation').value,
+                skills: document.getElementById('jobSkills').value.split(',').map(s => s.trim()).filter(s => s)
+            })
+        });
+        showSuccess('Job posted successfully!');
+        document.getElementById('postJobModal').style.display = 'none';
+        document.getElementById('postJobForm').reset();
+        loadJobs();
+    } catch (e) {
+        showError('Failed to post job');
+    }
+});
+
+// Make functions global
+window.applyForJob = async (jobId) => {
+    if (!isLoggedIn()) return window.location.href = '/auth/login';
+    const { value: coverLetter } = await Swal.fire({
+        title: 'Apply for this job',
+        input: 'textarea',
+        inputPlaceholder: 'Write a brief cover letter explaining why you\'re a good fit...',
+        showCancelButton: true,
+        confirmButtonText: 'Submit Application'
+    });
+    
+    if (coverLetter) {
+        try {
+            await apiFetch(`/jobs/${jobId}/applications`, {
+                method: 'POST',
+                body: JSON.stringify({ coverLetter })
+            });
+            showSuccess('Application submitted successfully!');
+        } catch (e) {
+            showError('Failed to submit application');
+        }
+    }
+};
+
+window.viewJobDetails = async (jobId) => {
+    try {
+        const job = await apiFetch(`/jobs/${jobId}`);
+        Swal.fire({
+            title: job.title,
+            html: `
+                <div style="text-align: left; font-size: 0.9rem;">
+                    <p><strong>Company:</strong> ${job.company || 'N/A'}</p>
+                    <p><strong>Location:</strong> ${job.location || 'N/A'}</p>
+                    <p><strong>Type:</strong> ${job.employmentType || 'N/A'}</p>
+                    <p><strong>Salary:</strong> ${job.salaryRange || 'Negotiable'}</p>
+                    <p><strong>Description:</strong></p>
+                    <p>${job.description || 'No description provided'}</p>
+                    ${job.skills && job.skills.length > 0 ? `<p><strong>Skills:</strong> ${job.skills.join(', ')}</p>` : ''}
+                </div>
+            `,
+            width: '600px'
+        });
+    } catch (e) {
+        showError('Failed to load job details');
+    }
+};
+
+loadJobs();
+</script>
+</body>
+</html>

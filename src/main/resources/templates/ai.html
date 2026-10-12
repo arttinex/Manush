@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manush AI — Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+    <link rel="stylesheet" th:href="@{/static/css/components.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <style>
+        .ai-container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .ai-card { background: var(--manush-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-3d-md); padding: 25px; margin-bottom: 25px; }
+        .chat-box { height: 350px; overflow-y: auto; border: 1px solid var(--manush-border); border-radius: var(--radius-sm); padding: 15px; margin-bottom: 15px; background: rgba(32,14,1,0.02); }
+        .chat-msg { margin-bottom: 12px; max-width: 80%; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; }
+        .chat-user { margin-left: auto; background: var(--manush-primary); color: #FFFFFF; }
+        .chat-ai { margin-right: auto; background: var(--manush-surface); border: 1px solid var(--manush-border); color: var(--manush-text); }
+        .extract-result { margin-top: 15px; padding: 15px; border-radius: var(--radius-sm); background: var(--manush-surface); border: 1px solid var(--manush-border); border-left: 4px solid var(--manush-primary); }
+    </style>
+</head>
+<body>
+    <div class="ai-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <div>
+                <h1 style="font-family: var(--font-display); color: var(--manush-primary);"><span style="font-family: var(--font-script);">Manush</span> AI Assistant</h1>
+                <p style="color: var(--manush-text-muted);">Smart Bangla/English help request extraction & guidance</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn-icon" id="themeToggle">☀️</button>
+                <a href="/feed" class="btn btn-ghost">Back to Feed</a>
+            </div>
+        </div>
+
+        <!-- Natural language Help interpreter -->
+        <div class="ai-card card-3d">
+            <h3>⚡ Natural-Language Help Request Parser</h3>
+            <p style="font-size: 13px; color: var(--manush-text-muted); margin-bottom: 12px;">Type in Bangla or Banglish (e.g., <i>"Bhai amar Uttara te ajke ekjon plumber lagbe"</i>):</p>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="nlInput" class="form-input" style="flex: 1;" placeholder="Describe what you need in your own words...">
+                <button class="btn btn-3d" id="btnExtract">Analyze Request</button>
+            </div>
+            <div id="extractBox" class="extract-result" style="display: none;">
+                <h4>Parsed Details:</h4>
+                <div id="extractContent" style="font-size: 14px; margin-top: 8px;"></div>
+            </div>
+        </div>
+
+        <!-- Conversational chat -->
+        <div class="ai-card card-3d">
+            <h3>💬 Manush AI Assistant</h3>
+            <div class="chat-box" id="chatBox">
+                <div class="chat-msg chat-ai">
+                    Hello! I'm your community AI guide. Ask me about blood requests, jobs, or how to earn helping points.
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="chatInput" class="form-input" style="flex: 1;" placeholder="Type your message...">
+                <button class="btn btn-3d" id="btnSend">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { apiFetch } from '/static/js/core/api.js';
+        import { initTheme } from '/static/js/core/theme.js';
+
+        initTheme();
+
+        // Extract NLP
+        document.getElementById('btnExtract').addEventListener('click', async () => {
+            const prompt = document.getElementById('nlInput').value.trim();
+            if (!prompt) return;
+
+            try {
+                const res = await apiFetch('/ai/help/analyze', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt })
+                });
+
+                document.getElementById('extractBox').style.display = 'block';
+                document.getElementById('extractContent').innerHTML = `
+                    <p><b>Detected Category:</b> <span class="badge" style="background: var(--manush-accent); color: var(--manush-primary); font-weight: bold;">${res.category}</span></p>
+                    <p><b>Location:</b> ${res.location}</p>
+                    <p><b>Urgency:</b> ${res.urgency}</p>
+                    <p><b>Timeline:</b> ${res.date}</p>
+                `;
+            } catch(e) {
+                Swal.fire({ icon: 'error', title: 'Extraction failed', text: e.message });
+            }
+        });
+
+        // Chat
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const box = document.getElementById('chatBox');
+            box.innerHTML += `<div class="chat-msg chat-user">${msg}</div>`;
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const res = await apiFetch('/ai/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({ message: msg })
+                });
+                box.innerHTML += `<div class="chat-msg chat-ai">${res.reply}</div>`;
+                box.scrollTop = box.scrollHeight;
+            } catch(e) {
+                box.innerHTML += `<div class="chat-msg chat-ai" style="color: var(--manush-danger);">Failed to get response.</div>`;
+            }
+        }
+
+        document.getElementById('btnSend').addEventListener('click', sendMessage);
+        document.getElementById('chatInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>

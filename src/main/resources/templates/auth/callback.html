@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logging in…</title>
+    <link rel="stylesheet" th:href="@{/static/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/static/css/main.css}">
+</head>
+<body style="display:flex;align-items:center;justify-content:center;min-height:100vh">
+<p class="serif" style="font-size:1.5rem">Signing you in…</p>
+<script>
+// Grab tokens from query params (set by GoogleOAuthSuccessHandler)
+const params = new URLSearchParams(window.location.search);
+const access = params.get('access');
+const refresh = params.get('refresh');
+if (access && refresh) {
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+    window.location.href = '/feed';
+} else {
+    window.location.href = '/auth/login?error=oauth_failed';
+}
+</script>
+</body>
+</html>
