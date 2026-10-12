@@ -30,9 +30,8 @@ public class AiController {
     public ResponseEntity<Map<String, Object>> chat(
             @RequestBody ChatRequest req,
             @AuthenticationPrincipal User user) {
-        if (user != null) {
-            rateLimitService.checkRateLimit("ai:" + user.getId(), 20, 1);
-        }
+        String rateLimitKey = user != null ? "ai:" + user.getId() : "ai:guest";
+        rateLimitService.checkRateLimit(rateLimitKey, 30, 1);
         return ResponseEntity.ok(aiService.chat(user, req.message()));
     }
 
@@ -41,9 +40,8 @@ public class AiController {
     public ResponseEntity<AiProvider.HelpExtraction> analyzeHelpPrompt(
             @RequestBody HelpPromptRequest req,
             @AuthenticationPrincipal User user) {
-        if (user != null) {
-            rateLimitService.checkRateLimit("ai:" + user.getId(), 20, 1);
-        }
+        String rateLimitKey = user != null ? "ai:" + user.getId() : "ai:guest";
+        rateLimitService.checkRateLimit(rateLimitKey, 30, 1);
         return ResponseEntity.ok(aiService.parseHelpPrompt(user, req.prompt()));
     }
 

@@ -29,8 +29,9 @@ public class ManushAiService {
     public Map<String, Object> chat(User user, String message) {
         AiProvider.AiResponse response = aiProvider.generate(message);
 
+        String userId = user != null ? user.getId() : "anonymous";
         AiUsageLog log = AiUsageLog.builder()
-                .userId(user.getId())
+                .userId(userId)
                 .action("CHAT")
                 .prompt(message)
                 .estimatedTokens(response.tokensUsed())
@@ -51,8 +52,9 @@ public class ManushAiService {
     public AiProvider.HelpExtraction parseHelpPrompt(User user, String prompt) {
         AiProvider.HelpExtraction extraction = aiProvider.extractHelpRequest(prompt);
 
+        String userId = user != null ? user.getId() : "anonymous";
         AiUsageLog log = AiUsageLog.builder()
-                .userId(user.getId())
+                .userId(userId)
                 .action("EXTRACT_HELP")
                 .prompt(prompt)
                 .estimatedTokens(prompt.length() / 4 + 10)
@@ -70,15 +72,15 @@ public class ManushAiService {
         // Fetch real open requests to ground AI advice rather than hallucinating tasks
         List<HelpRequest> openRequests = helpRequestRepository.findAll(PageRequest.of(0, 5)).getContent();
 
-        String advice = String.format(
-                "You currently have %d helping points! Based on your location (%s), here are %d open community requests you could help with to reach the next badge milestone.",
-                user.getHelpingPoints(),
-                user.getArea() != null ? user.getArea() : "your area",
-                openRequests.size()
-        );
+        long points = user != null ? user.getHelpingPoints() : 0L;
+        String location = (user != null && user.getArea() != null) ? user.getArea() : "your area";
+
+        String advice = user != null
+                ? String.format("You currently have %d helping points! Based on your location (%s), here are %d open community requests you could help with to reach the next badge milestone.", points, location, openRequests.size())
+                : String.format("Welcome to Manush! Here are %d open community requests in Bangladesh you can participate in. Log in to track your helping points and earn badges!", openRequests.size());
 
         return Map.of(
-                "userPoints", user.getHelpingPoints(),
+                "userPoints", points,
                 "advice", advice,
                 "suggestedRequests", openRequests
         );

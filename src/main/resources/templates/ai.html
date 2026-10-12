@@ -17,52 +17,84 @@
         })();
     </script>
     <style>
-        .ai-container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
-        .ai-card { background: var(--manush-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-3d-md); padding: 25px; margin-bottom: 25px; }
-        .chat-box { height: 350px; overflow-y: auto; border: 1px solid var(--manush-border); border-radius: var(--radius-sm); padding: 15px; margin-bottom: 15px; background: rgba(32,14,1,0.02); }
-        .chat-msg { margin-bottom: 12px; max-width: 80%; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; }
-        .chat-user { margin-left: auto; background: var(--manush-primary); color: #FFFFFF; }
-        .chat-ai { margin-right: auto; background: var(--manush-surface); border: 1px solid var(--manush-border); color: var(--manush-text); }
-        .extract-result { margin-top: 15px; padding: 15px; border-radius: var(--radius-sm); background: var(--manush-surface); border: 1px solid var(--manush-border); border-left: 4px solid var(--manush-primary); }
+        .ai-container { max-width: 920px; margin: 30px auto; padding: 0 20px; }
+        .ai-card { background: var(--manush-surface); border: 1px solid var(--manush-border); border-radius: var(--radius-md); box-shadow: var(--shadow-3d-md); padding: 25px; margin-bottom: 25px; }
+        .chat-box { height: 380px; overflow-y: auto; border: 1px solid var(--manush-border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 15px; background: rgba(32,14,1,0.02); display: flex; flex-direction: column; gap: 12px; }
+        .chat-msg { max-width: 82%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+        .chat-user { align-self: flex-end; background: var(--manush-primary); color: #FFFFFF; border-bottom-right-radius: 2px; }
+        .chat-ai { align-self: flex-start; background: var(--manush-surface); border: 1px solid var(--manush-border); color: var(--manush-text); border-bottom-left-radius: 2px; box-shadow: var(--shadow-sm); }
+        .chat-ai.typing { font-style: italic; color: var(--manush-text-muted); }
+        .extract-result { margin-top: 15px; padding: 16px; border-radius: var(--radius-sm); background: var(--manush-surface); border: 1px solid var(--manush-border); border-left: 4px solid var(--manush-primary); }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; margin-bottom: 15px; }
+        .suggestion-chip { font-size: 12px; padding: 6px 12px; border-radius: 20px; background: var(--manush-surface); border: 1px solid var(--manush-border); color: var(--manush-text); cursor: pointer; transition: all 0.2s ease; }
+        .suggestion-chip:hover { border-color: var(--manush-primary); color: var(--manush-primary); }
     </style>
 </head>
 <body>
     <div class="ai-container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <!-- Top Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
             <div>
-                <h1 style="font-family: var(--font-display); color: var(--manush-primary);"><span style="font-family: var(--font-script);">Manush</span> AI Assistant</h1>
-                <p style="color: var(--manush-text-muted);">Smart Bangla/English help request extraction & guidance</p>
+                <h1 style="font-family: var(--font-display); color: var(--manush-primary); margin-bottom: 4px;">
+                    <span style="font-family: var(--font-script);">Manush</span> AI Assistant
+                </h1>
+                <p style="color: var(--manush-text-muted); font-size: 14px;">Powered by Gemini &amp; Community Intelligence • Bangla &amp; English</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <button class="btn-icon" id="themeToggle">☀️</button>
-                <a href="/feed" class="btn btn-ghost">Back to Feed</a>
+                <button class="btn-icon" id="themeToggle" title="Toggle theme">☀️</button>
+                <a href="/feed" class="btn btn-ghost">← Feed</a>
+                <a href="/help" class="btn btn-ghost">Find Help</a>
             </div>
         </div>
 
         <!-- Natural language Help interpreter -->
         <div class="ai-card card-3d">
-            <h3>⚡ Natural-Language Help Request Parser</h3>
-            <p style="font-size: 13px; color: var(--manush-text-muted); margin-bottom: 12px;">Type in Bangla or Banglish (e.g., <i>"Bhai amar Uttara te ajke ekjon plumber lagbe"</i>):</p>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="nlInput" class="form-input" style="flex: 1;" placeholder="Describe what you need in your own words...">
-                <button class="btn btn-3d" id="btnExtract">Analyze Request</button>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="font-size: 20px;">⚡</span>
+                <h3 style="margin: 0;">Bangla / English Help Request Parser</h3>
+            </div>
+            <p style="font-size: 13px; color: var(--manush-text-muted); margin-bottom: 12px;">
+                Describe what you need in natural everyday language (e.g. <i>"ভাই আমার উত্তরাতে আজকে একজন প্লাম্বার লাগবে জরুরি"</i> or <i>"Emergency blood needed at DMC"</i>):
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="nlInput" class="form-input" style="flex: 1; min-width: 250px;" placeholder="Describe what you or your community need...">
+                <button class="btn btn-3d" id="btnExtract">Analyze with AI</button>
             </div>
             <div id="extractBox" class="extract-result" style="display: none;">
-                <h4>Parsed Details:</h4>
-                <div id="extractContent" style="font-size: 14px; margin-top: 8px;"></div>
+                <h4 style="margin-bottom: 10px; color: var(--manush-primary);">✨ AI Parsed Details:</h4>
+                <div id="extractContent" style="font-size: 14px; display: grid; gap: 8px;"></div>
+                <div style="margin-top: 14px;">
+                    <a id="btnCreateHelpFromAi" href="/help" class="btn btn-3d" style="font-size: 13px; padding: 6px 14px;">
+                        Post This Help Request →
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- Conversational chat -->
         <div class="ai-card card-3d">
-            <h3>💬 Manush AI Assistant</h3>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">💬</span>
+                    <h3 style="margin: 0;">Community Guide &amp; Chat</h3>
+                </div>
+                <span class="badge" style="background: rgba(46,125,50,0.15); color: #2E7D32; font-weight: 600; font-size: 12px;">Active</span>
+            </div>
+
+            <div class="chips-container" id="suggestionChips">
+                <button class="suggestion-chip" data-prompt="How do I earn Helping Points?">⭐ How to earn points</button>
+                <button class="suggestion-chip" data-prompt="How can I request urgent blood donation?">🩸 Request Blood</button>
+                <button class="suggestion-chip" data-prompt="Can you recommend volunteer activities in Dhaka?">🤝 Volunteer in Dhaka</button>
+                <button class="suggestion-chip" data-prompt="আমি কীভাবে অন্যকে সাহায্য করতে পারি?">🇧🇩 বাংলায় সাহায্য নির্দেশিকা</button>
+            </div>
+
             <div class="chat-box" id="chatBox">
                 <div class="chat-msg chat-ai">
-                    Hello! I'm your community AI guide. Ask me about blood requests, jobs, or how to earn helping points.
+                    Hello! I am Manush AI assistant. I can answer questions in Bangla, English, or Banglish. Ask me about blood requests, jobs, finding trusted local helpers, or how our points system works.
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="chatInput" class="form-input" style="flex: 1;" placeholder="Type your message...">
+                <input type="text" id="chatInput" class="form-input" style="flex: 1;" placeholder="Ask anything about Manush community...">
                 <button class="btn btn-3d" id="btnSend">Send</button>
             </div>
         </div>
@@ -75,9 +107,18 @@
         initTheme();
 
         // Extract NLP
-        document.getElementById('btnExtract').addEventListener('click', async () => {
-            const prompt = document.getElementById('nlInput').value.trim();
+        const btnExtract = document.getElementById('btnExtract');
+        const nlInput = document.getElementById('nlInput');
+        const extractBox = document.getElementById('extractBox');
+        const extractContent = document.getElementById('extractContent');
+        const btnCreateHelpFromAi = document.getElementById('btnCreateHelpFromAi');
+
+        btnExtract.addEventListener('click', async () => {
+            const prompt = nlInput.value.trim();
             if (!prompt) return;
+
+            btnExtract.disabled = true;
+            btnExtract.textContent = 'Analyzing...';
 
             try {
                 const res = await apiFetch('/ai/help/analyze', {
@@ -85,44 +126,86 @@
                     body: JSON.stringify({ prompt })
                 });
 
-                document.getElementById('extractBox').style.display = 'block';
-                document.getElementById('extractContent').innerHTML = `
-                    <p><b>Detected Category:</b> <span class="badge" style="background: var(--manush-accent); color: var(--manush-primary); font-weight: bold;">${res.category}</span></p>
-                    <p><b>Location:</b> ${res.location}</p>
-                    <p><b>Urgency:</b> ${res.urgency}</p>
-                    <p><b>Timeline:</b> ${res.date}</p>
+                extractBox.style.display = 'block';
+                extractContent.innerHTML = `
+                    <div><b>Category:</b> <span class="badge" style="background: var(--manush-primary); color: #FFFFFF; font-weight: 600;">${res.category || 'OTHER'}</span></div>
+                    <div><b>Location:</b> 📍 ${res.location || 'Dhaka'}</div>
+                    <div><b>Urgency:</b> <span style="font-weight: 600; color: ${res.urgency === 'HIGH' ? 'var(--manush-danger)' : 'var(--manush-text)'};">${res.urgency || 'NORMAL'}</span></div>
+                    <div><b>Timeline:</b> ⏱️ ${res.date || 'TODAY'}</div>
+                    <div><b>Summary:</b> ${res.summary || prompt}</div>
                 `;
+
+                // Link to create help request with pre-filled details
+                btnCreateHelpFromAi.href = `/help?category=${encodeURIComponent(res.category || '')}&location=${encodeURIComponent(res.location || '')}&title=${encodeURIComponent(res.summary || prompt)}`;
             } catch(e) {
-                Swal.fire({ icon: 'error', title: 'Extraction failed', text: e.message });
+                Swal.fire({ icon: 'error', title: 'Extraction failed', text: e.message || 'Please try again.' });
+            } finally {
+                btnExtract.disabled = false;
+                btnExtract.textContent = 'Analyze with AI';
             }
         });
 
+        nlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') btnExtract.click();
+        });
+
         // Chat
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const msg = input.value.trim();
+        const chatInput = document.getElementById('chatInput');
+        const btnSend = document.getElementById('btnSend');
+        const chatBox = document.getElementById('chatBox');
+
+        async function sendMessage(textToSend) {
+            const msg = textToSend || chatInput.value.trim();
             if (!msg) return;
 
-            const box = document.getElementById('chatBox');
-            box.innerHTML += `<div class="chat-msg chat-user">${msg}</div>`;
-            input.value = '';
-            box.scrollTop = box.scrollHeight;
+            chatBox.innerHTML += `<div class="chat-msg chat-user">${escapeHtml(msg)}</div>`;
+            if (!textToSend) chatInput.value = '';
+            
+            // Add typing indicator
+            const typingId = 'typing-' + Date.now();
+            chatBox.innerHTML += `<div class="chat-msg chat-ai typing" id="${typingId}">Thinking...</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            btnSend.disabled = true;
 
             try {
                 const res = await apiFetch('/ai/chat', {
                     method: 'POST',
                     body: JSON.stringify({ message: msg })
                 });
-                box.innerHTML += `<div class="chat-msg chat-ai">${res.reply}</div>`;
-                box.scrollTop = box.scrollHeight;
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+
+                chatBox.innerHTML += `<div class="chat-msg chat-ai">${res.reply ? escapeHtml(res.reply) : 'No reply received.'}</div>`;
             } catch(e) {
-                box.innerHTML += `<div class="chat-msg chat-ai" style="color: var(--manush-danger);">Failed to get response.</div>`;
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+                chatBox.innerHTML += `<div class="chat-msg chat-ai" style="color: var(--manush-danger);">Failed to get AI response: ${escapeHtml(e.message || 'Error')}</div>`;
+            } finally {
+                btnSend.disabled = false;
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
 
-        document.getElementById('btnSend').addEventListener('click', sendMessage);
-        document.getElementById('chatInput').addEventListener('keydown', (e) => {
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        btnSend.addEventListener('click', () => sendMessage());
+        chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') sendMessage();
+        });
+
+        // Chips
+        document.querySelectorAll('.suggestion-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const prompt = chip.getAttribute('data-prompt');
+                if (prompt) {
+                    sendMessage(prompt);
+                }
+            });
         });
     </script>
 </body>

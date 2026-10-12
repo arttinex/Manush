@@ -56,7 +56,10 @@
   --manush-surface: #2B1506;
   --manush-text: #EDE7C7;
   --manush-text-muted: #C9B98F;
-  --manush-border: #3C2410;
+  --manush-border: #4A2E16;
+  --manush-primary: #E25845;
+  --manush-primary-dark: #F0705E;
+  --manush-danger: #FF6B6B;
 }
 
 /* Respect reduced motion */

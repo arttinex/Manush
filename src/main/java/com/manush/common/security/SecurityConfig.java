@@ -39,6 +39,7 @@ public class SecurityConfig {
                 // Public API
                 .requestMatchers(
                     "/api/v1/auth/**",
+                    "/api/v1/ai/**",
                     "/oauth2/**",
                     "/login/oauth2/**"
                 ).permitAll()

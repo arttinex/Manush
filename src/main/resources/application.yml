@@ -26,18 +26,14 @@ spring:
 
 manush:
   jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET:manush-super-secret-jwt-signing-key-for-bangladesh-community-assistance-platform-2026-prod-secure}
+    access-token-expiry: ${JWT_ACCESS_TOKEN_EXPIRY:900000}
+    refresh-token-expiry: ${JWT_REFRESH_TOKEN_EXPIRY:604800000}
   storage:
     provider: ${STORAGE_PROVIDER:local}
   gdrive:
     folder-id: ${GDRIVE_FOLDER_ID:}
     service-account-json: ${GOOGLE_SERVICE_ACCOUNT_JSON:}
-
-ai:
-  provider: ${AI_PROVIDER:mock}
-  api-key: ${GEMINI_API_KEY:}
-
-
   ratelimit:
     login:
       capacity: 5
@@ -60,11 +56,15 @@ ai:
     blood-request:
       capacity: 5
       refill-hours: 1
-
   admin:
     seed-email: ${ADMIN_SEED_EMAIL:admin@manush.app}
     seed-password: ${ADMIN_SEED_PASSWORD:}
     seed-enabled: ${ADMIN_SEED_ENABLED:false}
+
+ai:
+  provider: ${AI_PROVIDER:gemini}
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-3.8-flash}
 
 springdoc:
   api-docs:

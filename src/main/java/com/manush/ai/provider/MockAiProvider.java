@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.Locale;
 
 @Component
-@ConditionalOnProperty(name = "manush.ai.provider", havingValue = "mock", matchIfMissing = true)
+@ConditionalOnProperty(name = "ai.provider", havingValue = "mock", matchIfMissing = true)
 public class MockAiProvider implements AiProvider {
 
     private static final Logger log = LoggerFactory.getLogger(MockAiProvider.class);
